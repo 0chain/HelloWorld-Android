@@ -6,21 +6,35 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_launcher_background"
+        android:src="@drawable/ic_launcher_foreground"
+        app:layout_constraintBottom_toTopOf="@+id/bt_create_wallet"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.49" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/bt_create_wallet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:text="Create wallet"
         app:layout_constraintBottom_toTopOf="@+id/bt_recover_wallet"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView"
+        app:layout_constraintVertical_bias="0.5" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/bt_recover_wallet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:text="Recover wallet"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
