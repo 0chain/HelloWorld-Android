@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/createWalletFragment">
+    <fragment
+        android:id="@+id/createWalletFragment"
+        android:name="org.zus.bolt.helloworld.ui.CreateWalletFragment"
+        android:label="create_wallet_fragment"
+        tools:layout="@layout/create_wallet_fragment" >
+        <action
+            android:id="@+id/action_createWalletFragment_to_boltFragment"
+            app:destination="@id/boltFragment" />
+        <action
+            android:id="@+id/action_createWalletFragment_to_vultFragment"
+            app:destination="@id/vultFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/boltFragment"
+        android:name="org.zus.bolt.helloworld.ui.bolt.BoltFragment"
+        android:label="BoltFragment" />
+    <fragment
+        android:id="@+id/vultFragment"
+        android:name="org.zus.bolt.helloworld.ui.vult.VultFragment"
+        android:label="vult_fragment"
+        tools:layout="@layout/vult_fragment" />
+</navigation>
