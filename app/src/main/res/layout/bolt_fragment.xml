@@ -40,7 +40,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="@string/base_token"
+                        android:text="@string/zcn_balance"
                         android:textColor="@color/normal_text_color"
                         android:textSize="25sp"
                         android:textStyle="bold" />
@@ -76,19 +76,19 @@
                 android:orientation="vertical">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/msendToken"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@drawable/border_right"
                     android:gravity="center"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
                     android:orientation="vertical">
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
+                        android:background="@color/white"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/textView"
                         app:layout_constraintStart_toStartOf="parent"
@@ -98,13 +98,14 @@
                             android:id="@+id/receiverClientId"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="@null"
                             android:hint="@string/receiver_client_id"
-                            android:inputType="numberDecimal" />
+                            android:inputType="text" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <ImageView
-                        android:id="@+id/iconSend"
+                        android:id="@+id/msend_token"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:contentDescription="@string/app_name"
@@ -125,7 +126,7 @@
                         android:textColor="@color/normal_text_color"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/iconSend" />
+                        app:layout_constraintTop_toBottomOf="@+id/msend_token" />
 
 
                 </androidx.constraintlayout.widget.ConstraintLayout>

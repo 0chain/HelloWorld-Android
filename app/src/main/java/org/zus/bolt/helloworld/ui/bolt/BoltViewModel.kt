@@ -1,5 +1,7 @@
 package org.zus.bolt.helloworld.ui.bolt
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.models.BalanceModel
@@ -66,22 +68,24 @@ class BoltViewModel : ViewModel() {
         }
     }
 
-    fun getWalletBalance(): String {
-        var balance = "0"
+    fun getWalletBalance(): LiveData<String> {
+        var response = MutableLiveData<String>()
         try {
             Zcncore.getBalance { status, value, info ->
                 if (status == 0L) {
                     Gson().fromJson(info, BalanceModel::class.java).let { balanceModel ->
-                        balance = Zcncore.convertToToken(balanceModel.balance).toString()
+                        response.postValue(Zcncore.convertToToken(balanceModel.balance).toString())
                     }
                 } else {
                     print("Error: $info")
+                    response.postValue("")
                 }
             }
         } catch (e: Exception) {
             print("Error: $e")
+            response.postValue("")
         }
-        return balance
+        return response
     }
 
     fun getTransactions() {

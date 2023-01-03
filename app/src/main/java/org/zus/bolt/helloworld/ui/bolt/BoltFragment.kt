@@ -6,13 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.BoltFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
-import java.util.*
 
-/**
- * A simple [Fragment] subclass as the second destination in the navigation.
- */
+public const val TAG_BOLT: String = "BoltFragment"
+
 class BoltFragment : Fragment() {
 
     private var _binding: BoltFragmentBinding? = null
@@ -35,14 +34,14 @@ class BoltFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Timer().schedule(object : TimerTask() {
-            override fun run() {
-                requireActivity().runOnUiThread {
-                    binding.zcnBalance.text = "${boltViewModel.getWalletBalance()} ZCN"
-                }
-            }
-        }, 0, 10000)
+        binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
 
+        /* getting the updated balance by refreshing. */
+        binding.mRefresh.setOnClickListener {
+            boltViewModel.getWalletBalance().observe(viewLifecycleOwner) {
+                binding.zcnBalance.text = getString(R.string.zcn_balance, it)
+            }
+        }
         /* Receive token faucet transaction. */
         binding.mreceiveToken.setOnClickListener {
             boltViewModel.receiveFaucet()

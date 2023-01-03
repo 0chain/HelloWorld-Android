@@ -2,19 +2,24 @@
     <string name="app_name">Hello World</string>
     <string name="title_activity_bolt">BoltActivity</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="title_activity_main2">MainActivity2</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="base_token">0 ZCN</string>
+    <string name="hello_first_fragment">Bolt App</string>
+    <string name="hello_second_fragment">Vult App</string>
+    <string name="title_activity_main2">Splash Activity</string>
+
+    <string name="zcn_balance">%1$s ZCN</string>
     <string name="no_recent_transaction">No Recent Transactions</string>
     <string name="receive">Receive</string>
     <string name="send">Send</string>
     <string name="receiver_client_id">Enter Receiver Client Id</string>
+    <string name="upload_file">Upload File</string>
+    <string name="download_file">Download File</string>
+    <string name="bolt">Bolt</string>
+    <string name="vult">Vult</string>
+    <string name="label_create_wallet">Create Wallet</string>
+    <string name="label_bolt_fragment">BoltFragment</string>
+    <string name="label_select_app_fragment">Select App</string>
+    <string name="label_vult_fragment">Vult Fragment</string>
 </resources>

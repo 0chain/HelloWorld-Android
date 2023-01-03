@@ -8,5 +8,6 @@ data class WalletModel(
     @SerializedName("mnemonics") val mMnemonics: String,
     @SerializedName("version") val mVersion: String,
     @SerializedName("date_created") val mDateCreated: String,
-    @SerializedName("keys") val mKeys: List<KeyModel>
+    @SerializedName("keys") val mKeys: List<KeyModel>,
+    var walletJson: String
 )

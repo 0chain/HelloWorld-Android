@@ -14,6 +14,8 @@ import org.zus.bolt.helloworld.models.WalletModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import zcncore.Zcncore
 
+public const val TAG_CREATE_WALLET: String = "CreateWalletFragment"
+
 class CreateWalletFragment : Fragment() {
 
     private var _binding: CreateWalletFragmentBinding? = null
@@ -40,9 +42,10 @@ class CreateWalletFragment : Fragment() {
                         try {
                             Gson().fromJson(walletJson, WalletModel::class.java).let {
                                 viewModel.wallet = it
+                                viewModel.wallet.walletJson = walletJson
                                 Zcncore.setWalletInfo(walletJson, false)
                                 requireActivity().runOnUiThread {
-                                    findNavController().navigate(R.id.action_createWalletFragment_to_boltFragment)
+                                    findNavController().navigate(R.id.action_createWalletFragment_to_selectAppFragment)
                                 }
                             }
                         } catch (e: Exception) {

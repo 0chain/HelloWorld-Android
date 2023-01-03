@@ -7,5 +7,4 @@ import org.zus.bolt.helloworld.models.WalletModel
 class MainViewModel : ViewModel() {
     lateinit var wallet: WalletModel
     var transactionList: MutableList<TransactionModel> = mutableListOf()
-
 }
