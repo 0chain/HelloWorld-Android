@@ -1,5 +1,6 @@
 package org.zus.bolt.helloworld.ui.bolt
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -28,6 +29,16 @@ class BoltViewModel : ViewModel() {
                 }
             """.trimIndent()
             )
+        }
+    }
+
+    private val getInfoCallback = object : GetInfoCallback {
+        override fun onInfoAvailable(p0: Long, p1: Long, p2: String?, p3: String?) {
+            Log.i(TAG_BOLT, "onInfoAvailable: ")
+            Log.i(TAG_BOLT, "onInfoAvailable: p0 $p0")
+            Log.i(TAG_BOLT, "onInfoAvailable: p1 $p1")
+            Log.i(TAG_BOLT, "onInfoAvailable: p2 $p2")
+            Log.i(TAG_BOLT, "onInfoAvailable: p3 $p3")
         }
     }
 
@@ -100,10 +111,8 @@ class BoltViewModel : ViewModel() {
         )
     }
 
-    private val getInfoCallback = object : GetInfoCallback {
-        override fun onInfoAvailable(p0: Long, p1: Long, p2: String?, p3: String?) {
-        }
-
+    fun getBlobbers() {
+        Zcncore.getBlobbers(getInfoCallback, /* limit */ 20, /* offset */ 0, true)
     }
 
     private fun getNonce(): Long {

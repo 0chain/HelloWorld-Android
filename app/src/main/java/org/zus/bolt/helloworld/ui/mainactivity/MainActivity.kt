@@ -9,6 +9,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.MainActivityBinding
+import org.zus.bolt.helloworld.utils.Utils
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: MainActivityBinding
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-
+        viewModel.wallet = Utils(applicationContext).getWalletModel()
         // Setting app bar for the back button navigation.
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)

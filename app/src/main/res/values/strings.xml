@@ -11,7 +11,7 @@
 
     <string name="zcn_balance">%1$s ZCN</string>
     <string name="no_recent_transaction">No Recent Transactions</string>
-    <string name="receive">Receive</string>
+    <string name="receive">Receive Tokens Faucet</string>
     <string name="send">Send</string>
     <string name="receiver_client_id">Enter Receiver Client Id</string>
     <string name="upload_file">Upload File</string>
@@ -22,4 +22,5 @@
     <string name="label_bolt_fragment">BoltFragment</string>
     <string name="label_select_app_fragment">Select App</string>
     <string name="label_vult_fragment">Vult Fragment</string>
+    <string name="create_allocation">Create Allocation</string>
 </resources>

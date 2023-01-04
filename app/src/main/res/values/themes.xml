@@ -2,15 +2,17 @@
     <!-- Base application theme. -->
     <style name="Theme.HelloWorld" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/vult_blue</item>
+        <item name="colorPrimaryVariant">@color/website_zus_color_variant</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorSecondary">@color/green_bolt</item>
+        <item name="colorSecondaryVariant">@color/green_bolt_variant</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="21">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor" tools:targetApi="21">@color/website_zus_color_variant
+        </item>
+        <!--        <item name="android:statusBarColor" tools:targetApi="21">?attr/colorPrimaryVariant</item>-->
         <!-- Customize your theme here. -->
     </style>
 
@@ -21,5 +23,5 @@
 
     <style name="Theme.HelloWorld.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="Theme.HelloWorld.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.HelloWorld.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
 </resources>

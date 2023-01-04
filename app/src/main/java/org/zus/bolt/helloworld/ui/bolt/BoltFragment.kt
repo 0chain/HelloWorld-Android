@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.BoltFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
+import java.util.*
 
 public const val TAG_BOLT: String = "BoltFragment"
 
@@ -21,7 +22,7 @@ class BoltFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
 
         _binding = BoltFragmentBinding.inflate(inflater, container, false)
@@ -31,25 +32,45 @@ class BoltFragment : Fragment() {
 
     }
 
+    private fun updateBalance() {
+        requireActivity().runOnUiThread {
+            boltViewModel.getWalletBalance().observe(viewLifecycleOwner) { balance ->
+                binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
 
+        updateBalance()
+
         /* getting the updated balance by refreshing. */
         binding.mRefresh.setOnClickListener {
-            boltViewModel.getWalletBalance().observe(viewLifecycleOwner) {
-                binding.zcnBalance.text = getString(R.string.zcn_balance, it)
-            }
+            updateBalance()
         }
         /* Receive token faucet transaction. */
         binding.mreceiveToken.setOnClickListener {
+            /* updating the balance after 3 seconds.*/
             boltViewModel.receiveFaucet()
+            Timer().schedule(object : TimerTask() {
+                override fun run() {
+                    updateBalance()
+                }
+            }, 1000)
         }
 
         /* Send token to an address. */
         binding.msendToken.setOnClickListener {
             boltViewModel.sendTransaction(binding.receiverClientId.text.toString())
+            /* updating the balance after 3 seconds.*/
+            Timer().schedule(object : TimerTask() {
+                override fun run() {
+                    updateBalance()
+                }
+            }, 1000)
         }
     }
 

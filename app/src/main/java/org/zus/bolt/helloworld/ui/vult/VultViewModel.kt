@@ -10,7 +10,7 @@ class VultViewModel : ViewModel() {
     companion object {
         fun initZboxStorageSDK(config: String, walletJSON: String): StorageSDK =
             try {
-                Sdk.initStorageSDK(config, walletJSON)
+                Sdk.initStorageSDK(walletJSON, config)
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "initZboxStorageSDK Exception: ", e)
                 StorageSDK()
@@ -33,7 +33,7 @@ class VultViewModel : ViewModel() {
             p2: String?,
             p3: String?,
             p4: Long,
-            p5: Long
+            p5: Long,
         ) {
             Log.d(TAG_VULT, "completed: ")
             Log.d(TAG_VULT, "completed: p0: $p0")
@@ -76,28 +76,52 @@ class VultViewModel : ViewModel() {
 
     }
 
-    fun createAllocation() {
-        storageSDK.createAllocation(
-            /* allocation name =*/"test allocation",
-            /* datashards =*/0,
-            /* parityshards =*/0,
-            /* size =*/0,
-            /* expiration =*/0,
-            /* lock tokens =*/""
-        )
+    fun createAllocation(
+        allocationName: String,
+        dataShards: Long,
+        parityShards: Long,
+        allocationSize: Long,
+        expirationNanoSeconds: Long,
+        lockTokens: String,
+    ) {
+        Log.i(TAG_VULT, "createAllocation: ")
+        Log.i(TAG_VULT, "createAllocation: allocationName: $allocationName")
+        Log.i(TAG_VULT, "createAllocation: dataShards: $dataShards")
+        Log.i(TAG_VULT, "createAllocation: parityShards: $parityShards")
+        Log.i(TAG_VULT, "createAllocation: allocationSize: $allocationSize")
+        Log.i(TAG_VULT, "createAllocation: expirationNanoSeconds: $expirationNanoSeconds")
+        Log.i(TAG_VULT, "createAllocation: lockTokens: $lockTokens")
+
+        try {
+            storageSDK.createAllocation(
+                allocationName,
+                dataShards,
+                parityShards,
+                allocationSize,
+                expirationNanoSeconds,
+                lockTokens
+            )
+            Log.i(TAG_VULT, "createAllocation: successfully created allocation")
+        } catch (e: Exception) {
+            Log.e(TAG_VULT, "createAllocation Exception: ", e)
+        }
     }
 
     fun createAllocationWithBlobber() {
-        storageSDK.createAllocationWithBlobbers(
-            /* allocation name =*/"test allocation",
-            /* datashards =*/0,
-            /* parityshards =*/0,
-            /* size =*/0,
-            /* expiration =*/0,
-            /* lock tokens =*/"",
-            /* blobbers =*/"",
-            /* blobber id's*/""
-        )
+        try {
+            storageSDK.createAllocationWithBlobbers(
+                /* allocation name =*/"test allocation",
+                /* datashards =*/0,
+                /* parityshards =*/0,
+                /* size in kilobytes=*/0,
+                /* expiration in nanoseconds=*/0,
+                /* lock tokens =*/"",
+                /* blobbers =*/"",
+                /* blobber id's*/""
+            )
+        } catch (e: Exception) {
+            Log.e(TAG_VULT, "createAllocationWithBlobber Exception: ", e)
+        }
     }
 
     fun uploadFile(filePathURI: String?, fileAttr: String?) {
@@ -115,14 +139,25 @@ class VultViewModel : ViewModel() {
             )
     }
 
-    fun downloadFile(fileName: String) {
+    fun downloadFile(fileName: String, downloadPath: String) {
         storageSDK.getAllocation(storageSDK.allocations.split(' ')[0])
             .downloadFile(
                 /* file local download path =*/
-                "",
+                downloadPath,
                 /* remote path =*/
                 "/$fileName",
                 statusCallbackMocked
             )
     }
+
+    /*fun shareFile(fileName: String, shareDuration: Long) {
+        storageSDK.getAllocation(storageSDK.allocations.split(' ')[0])
+            .share()shareFile(
+                *//* file name =*//*
+                fileName,
+                *//* share duration =*//*
+                shareDuration,
+                statusCallbackMocked
+            )
+    }*/
 }

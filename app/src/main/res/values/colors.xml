@@ -3,15 +3,19 @@
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="green_bolt">#00B21D</color>
+    <color name="green_bolt_variant">#75E755</color>
+    <color name="vult_blue">#175BFF</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="color_background">#FFFFFF</color>
+    <color name="color_background">@color/website_zus_color</color>
     <color name="normal_text_color">#000000</color>
     <color name="color_bg_transaction">#FFFFFF</color>
     <color name="color_grey">#edecf4</color>
     <color name="color_bg_blue">#15ccba</color>
     <color name="color_border_light_grey">#cfcfcf</color>
     <color name="color_button_text_blue">#15ccba</color>
+    <color name="website_zus_color">#020818</color>
+    <color name="website_zus_color_variant">#052372</color>
+    <color name="website_zus_color_variant_card_view">#1E2E58</color>
 </resources>

@@ -8,26 +8,36 @@
 
     <ImageView
         android:id="@+id/iv_vult_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ic_launcher_background"
-        android:src="@drawable/ic_launcher_foreground"
-        app:layout_constraintBottom_toTopOf="@+id/btn_download_file"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="80dp"
+        android:src="@drawable/ic_vult_logo_white"
+        app:layout_constraintBottom_toTopOf="@+id/btn_upload_file"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.23000002" />
+        app:layout_constraintVertical_bias="0.45" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_upload_file"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/upload_file"
-        app:layout_constraintBottom_toTopOf="@+id/btn_download_file"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_vult_image"
-        app:layout_constraintVertical_bias="0.45" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_create_allocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/create_allocation"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_upload_file"
+        app:layout_constraintVertical_bias="0.25" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_download_file"
@@ -37,8 +47,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/btn_upload_file"
         app:layout_constraintStart_toStartOf="@+id/btn_upload_file"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.88" />
+        app:layout_constraintTop_toBottomOf="@+id/btn_upload_file"
+        app:layout_constraintVertical_bias="0.68" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

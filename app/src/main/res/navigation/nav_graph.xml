@@ -3,19 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/createWalletFragment">
+    app:startDestination="@id/selectAppFragment">
     <fragment
         android:id="@+id/createWalletFragment"
         android:name="org.zus.bolt.helloworld.ui.CreateWalletFragment"
         android:label="@string/label_create_wallet"
         tools:layout="@layout/create_wallet_fragment">
+        <argument
+            android:name="app_type"
+            app:argType="org.zus.bolt.helloworld.models.AppType" />
         <action
-            android:id="@+id/action_createWalletFragment_to_selectAppFragment"
-            app:destination="@id/selectAppFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            android:id="@+id/action_createWalletFragment_to_boltFragment"
+            app:destination="@id/boltFragment" />
+        <action
+            android:id="@+id/action_createWalletFragment_to_vultFragment"
+            app:destination="@id/vultFragment" />
     </fragment>
     <fragment
         android:id="@+id/boltFragment"
@@ -32,18 +34,17 @@
         android:label="@string/label_select_app_fragment"
         tools:layout="@layout/select_app_fragment">
         <action
+            android:id="@+id/action_selectAppFragment_to_createWalletFragment"
+            app:destination="@id/createWalletFragment">
+            <argument
+                android:name="app_type"
+                app:argType="org.zus.bolt.helloworld.models.AppType" />
+        </action>
+        <action
             android:id="@+id/action_selectAppFragment_to_boltFragment"
-            app:destination="@id/boltFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:destination="@id/boltFragment" />
         <action
             android:id="@+id/action_selectAppFragment_to_vultFragment"
-            app:destination="@id/vultFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:destination="@id/vultFragment" />
     </fragment>
 </navigation>

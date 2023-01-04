@@ -8,6 +8,9 @@ import zcncore.Zcncore
 private const val TAG_APP = "HelloWorldApplication"
 
 class ZusExampleApplication : Application() {
+    private val utils: Utils by lazy {
+        Utils(applicationContext)
+    }
 
     init {
         /* Adding .so files/native libraries in the jNi libs for proper functioning of the app with gosdk. */
@@ -29,6 +32,8 @@ class ZusExampleApplication : Application() {
         try {
             // Initialize Zcncore with chain config  at the start of the Application.
             Zcncore.init(Utils.config)
+            if (utils.isWalletExist())
+                Zcncore.setWalletInfo(utils.readWalletFromFileJSON(), false)
             Log.i(TAG_APP, "onCreate: sdk initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG_APP, "onCreate: sdk initialization failed Exception", e)

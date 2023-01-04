@@ -5,6 +5,9 @@ import org.zus.bolt.helloworld.models.TransactionModel
 import org.zus.bolt.helloworld.models.WalletModel
 
 class MainViewModel : ViewModel() {
-    lateinit var wallet: WalletModel
-    var transactionList: MutableList<TransactionModel> = mutableListOf()
+    var wallet: WalletModel? = null
+
+    fun setWalletJson(walletJson: String) {
+        wallet?.walletJson = walletJson
+    }
 }
