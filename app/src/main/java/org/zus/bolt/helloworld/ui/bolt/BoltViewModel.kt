@@ -46,7 +46,7 @@ class BoltViewModel : ViewModel() {
         Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
             .send(
                 /* receiver address = */ to,
-                /* amount = */ Zcncore.convertToToken(1).toString(),
+                /* amount = */ Zcncore.convertToValue(1.0).toString(),
                 /* notes = */ "Hello world! sending tokens."
             )
     }

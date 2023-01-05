@@ -13,7 +13,7 @@ class ZusExampleApplication : Application() {
     }
 
     init {
-        /* Adding .so files/native libraries in the jNi libs for proper functioning of the app with gosdk. */
+        /* Loading .so files/native libraries in the jNi libs for proper functioning of the app with gosdk. */
         try {
             System.loadLibrary("c++_shared")
             System.loadLibrary("bls384")
