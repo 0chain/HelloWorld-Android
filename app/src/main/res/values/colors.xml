@@ -9,7 +9,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="color_background">@color/website_zus_color</color>
-    <color name="normal_text_color">#000000</color>
+    <color name="normal_text_color">@color/white</color>
     <color name="color_bg_transaction">#FFFFFF</color>
     <color name="color_grey">#edecf4</color>
     <color name="color_bg_blue">#15ccba</color>

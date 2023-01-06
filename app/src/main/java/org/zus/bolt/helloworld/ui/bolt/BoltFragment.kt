@@ -1,11 +1,19 @@
 package org.zus.bolt.helloworld.ui.bolt
 
+import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.ClipboardManager
+import android.content.Context.CLIPBOARD_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.textview.MaterialTextView
+import kotlinx.coroutines.runBlocking
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.BoltFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
@@ -33,13 +41,16 @@ class BoltFragment : Fragment() {
     }
 
     private fun updateBalance() {
-        requireActivity().runOnUiThread {
-            boltViewModel.getWalletBalance().observe(viewLifecycleOwner) { balance ->
-                binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
+        runBlocking {
+            requireActivity().runOnUiThread {
+                boltViewModel.getWalletBalance().observe(viewLifecycleOwner) { balance ->
+                    binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
+                }
             }
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -47,30 +58,97 @@ class BoltFragment : Fragment() {
 
         updateBalance()
 
-        /* getting the updated balance by refreshing. */
-        binding.mRefresh.setOnClickListener {
-            updateBalance()
-        }
-        /* Receive token faucet transaction. */
-        binding.mreceiveToken.setOnClickListener {
+/* Setting the adapters. */
+        val transactionsAdapter = TransactionsAdapter(requireContext(), listOf())
+        binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvTransactions.adapter = transactionsAdapter
+
+        boltViewModel.transactions.observe(viewLifecycleOwner) { transactions ->
+            transactionsAdapter.transactions = transactions
+            transactionsAdapter.notifyDataSetChanged()
+        }  /* Receive token faucet transaction. */
+        binding.mFaucet.setOnClickListener {
             /* updating the balance after 3 seconds.*/
-            boltViewModel.receiveFaucet()
-            Timer().schedule(object : TimerTask() {
-                override fun run() {
-                    updateBalance()
-                }
-            }, 1000)
+            runBlocking {
+                boltViewModel.receiveFaucet()
+                Timer().schedule(object : TimerTask() {
+                    override fun run() {
+                        updateBalance()
+                    }
+                }, 1000)
+            }
         }
 
         /* Send token to an address. */
         binding.msendToken.setOnClickListener {
-            boltViewModel.sendTransaction(binding.receiverClientId.text.toString())
-            /* updating the balance after 3 seconds.*/
-            Timer().schedule(object : TimerTask() {
-                override fun run() {
-                    updateBalance()
+            val builder = AlertDialog.Builder(requireContext())
+            val dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.send_transaction_dialog, null)
+            builder.setTitle("Send Token")
+                .setView(dialogView)
+                .setPositiveButton("Send") { _, _ ->
+                    val address =
+                        dialogView.findViewById<TextView>(R.id.et_to_client_id).text.toString()
+                    val amount = dialogView.findViewById<TextView>(R.id.amount).text.toString()
+                    runBlocking {
+                        boltViewModel.sendTransaction(address, amount)
+                        Timer().schedule(object : TimerTask() {
+                            override fun run() {
+                                updateBalance()
+                            }
+                        }, 1000)
+                    }
                 }
-            }, 1000)
+                .setNegativeButton("Cancel") { dialog, _ ->
+                    dialog.cancel()
+                }
+            builder.create().show()
+        }
+
+        binding.mreceiveToken.setOnClickListener {
+
+            val builder = AlertDialog.Builder(requireContext())
+            val dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.receive_transaction_dialog, null)
+            dialogView.findViewById<MaterialTextView>(R.id.tv_receiver_client_id).text =
+                mainViewModel.wallet?.mClientId?.substring(0, 25) + "..."
+            builder.setTitle("Receive Token")
+                .setView(dialogView)
+                .setCancelable(true)
+                .setNeutralButton("Copy Client ID") { _, _ ->
+                    //copy to clipboard
+                    var clipboard =
+                        requireActivity().getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                    clipboard.setPrimaryClip(
+                        android.content.ClipData.newPlainText(
+                            "text",
+                            mainViewModel.wallet?.mClientId
+                        )
+                    )
+                }
+            builder.create().show()
+        }
+
+
+        updateTransactions()
+        binding.swipeRefresh.setOnRefreshListener {
+            updateBalance()
+            updateTransactions()
+            binding.swipeRefresh.isRefreshing = false
+        }
+
+    }
+
+    /* Get transactions. */
+    private fun updateTransactions() {
+        runBlocking {
+            boltViewModel.getTransactions(
+                fromClientId = mainViewModel.wallet?.mClientId ?: "",
+                toClientId = "",
+                sortOrder = Sort.getSort(SortEnum.DESC),
+                limit = 20,
+                offset = 0
+            )
         }
     }
 
@@ -79,3 +157,5 @@ class BoltFragment : Fragment() {
         _binding = null
     }
 }
+
+

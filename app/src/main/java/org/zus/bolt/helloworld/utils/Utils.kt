@@ -6,6 +6,8 @@ import org.json.JSONObject
 import org.zus.bolt.helloworld.models.WalletModel
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class Utils(var applicationContext: Context) {
     companion object {
@@ -32,6 +34,17 @@ class Utils(var applicationContext: Context) {
         """.trimIndent()
 
         val config: String = JSONObject(configJsonString).get("config").toString()
+
+
+        fun getDateTime(s: Long): String? {
+            try {
+                val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
+                val netDate = Date(s)
+                return sdf.format(netDate)
+            } catch (e: Exception) {
+                return e.toString()
+            }
+        }
     }
 
     fun getConfigFromAssets(configFileName: String): String? {

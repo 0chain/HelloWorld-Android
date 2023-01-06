@@ -11,7 +11,7 @@
 
     <string name="zcn_balance">%1$s ZCN</string>
     <string name="no_recent_transaction">No Recent Transactions</string>
-    <string name="receive">Receive Tokens Faucet</string>
+    <string name="receive">Receive</string>
     <string name="send">Send</string>
     <string name="receiver_client_id">Enter Receiver Client Id</string>
     <string name="upload_file">Upload File</string>
@@ -23,4 +23,12 @@
     <string name="label_select_app_fragment">Select App</string>
     <string name="label_vult_fragment">Vult Fragment</string>
     <string name="create_allocation">Create Allocation</string>
+    <string name="available_balance">Available Balance</string>
+    <string name="base_token">ZCN</string>
+    <string name="total_balance">Total Balance</string>
+    <string name="base_dollar">$0</string>
+    <string name="image_place_holder_text">send token</string>
+    <string name="faucet">Faucet</string>
+    <string name="recent_transactions">Recent Transactions</string>
+    <string name="transaction_list_item">%1$d. %2$s... %3$s</string>
 </resources>

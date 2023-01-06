@@ -8,218 +8,240 @@
     android:background="@color/website_zus_color"
     android:orientation="vertical">
 
-
     <LinearLayout
         android:id="@+id/myRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="RtlSymmetry">
 
+        <ImageView
+            android:layout_width="63dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="30dp"
+            android:src="@drawable/ic_fragments_header" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="31dp"
+            android:text="@string/available_balance"
+            android:textColor="@color/normal_text_color"
+            android:textSize="@dimen/text_small_size" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:orientation="horizontal">
 
-            <com.google.android.material.card.MaterialCardView
+            <TextView
+                android:id="@+id/zcnBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/averta_std_bold"
+                android:text="@string/base_token"
+                android:textColor="@color/normal_text_color"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/zcnBalanceSymbol"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="@string/base_token"
+                android:textColor="@color/normal_text_color"
+                android:textSize="@dimen/text_normal_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/total_balance"
+                android:textColor="@color/normal_text_color"
+                android:textSize="@dimen/text_normal_size" />
+
+            <TextView
+                android:id="@+id/zcnDollar"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight=".6"
-                app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="10dp"
-                app:cardUseCompatPadding="true">
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="@font/averta_std_bold"
+                android:text="@string/base_dollar"
+                android:textColor="@color/normal_text_color"
+                android:textSize="@dimen/text_normal_size"
+                android:textStyle="bold" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    tools:ignore="NestedWeights">
+        </LinearLayout>
 
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        tools:ignore="UselessParent">
-
-                        <TextView
-                            android:id="@+id/zcnBalance"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:gravity="center"
-                            android:text="@string/zcn_balance"
-                            android:textColor="@color/design_default_color_on_primary"
-                            android:textSize="50sp"
-                            android:textStyle="bold" />
-
-                        <ImageView
-                            android:id="@+id/mRefresh"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_centerInParent="true"
-                            android:layout_marginStart="18sp"
-                            android:layout_marginEnd="10dp"
-                            android:layout_toEndOf="@+id/zcnBalance"
-                            android:contentDescription="@string/app_name"
-                            android:src="@mipmap/icon_swap" />
-
-                        <TextView
-                            android:id="@+id/zcnDollar"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@+id/zcnBalance"
-                            android:layout_centerInParent="true"
-                            android:textAlignment="center"
-                            android:textColor="@color/green_bolt" />
-
-                    </RelativeLayout>
-
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="17dp"
+            android:layout_marginEnd="12dp"
+            app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
+            app:cardCornerRadius="12dp"
+            app:cardUseCompatPadding="true"
+            tools:ignore="MissingConstraints">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="10dp"
-                    app:cardUseCompatPadding="true">
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/textView"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/receiverClientId"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@null"
-                                android:hint="@string/receiver_client_id"
-                                android:inputType="text" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <ImageView
-                            android:id="@+id/msend_token"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@color/white"
-                            android:contentDescription="@string/app_name"
-                            android:src="@mipmap/icon_send"
-                            app:layout_constraintBottom_toTopOf="@+id/textView"
-                            app:layout_constraintEnd_toEndOf="@+id/textView"
-                            app:layout_constraintStart_toStartOf="@+id/textView"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintVertical_chainStyle="packed" />
-
-                        <TextView
-                            android:id="@+id/textView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="30dp"
-                            android:text="@string/send"
-                            android:textAlignment="center"
-                            android:textColor="@color/design_default_color_on_primary"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/msend_token" />
-
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="16dp"
+                android:weightSum="3">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:id="@+id/msendToken"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@string/image_place_holder_text"
+                        android:src="@drawable/ic_send" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/averta_std_semi_bold"
+                        android:text="@string/send"
+                        android:textColor="@color/normal_text_color"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/mreceiveToken"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/mreceiveToken"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:clickable="true"
-                        app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-                        app:cardCornerRadius="10dp"
-                        app:cardElevation="10dp"
-                        app:cardUseCompatPadding="true">
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@string/image_place_holder_text"
+                        android:src="@drawable/ic_receive" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="@string/receive"
-                            android:textAlignment="center"
-                            android:textColor="@color/design_default_color_on_primary"
-                            android:textSize="25sp" />
-                    </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/averta_std_semi_bold"
+                        android:text="@string/receive"
+                        android:textColor="@color/normal_text_color"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/mFaucet"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@string/image_place_holder_text"
+                        android:src="@drawable/ic_send" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/averta_std_semi_bold"
+                        android:text="@string/faucet"
+                        android:textColor="@color/normal_text_color"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingTop="16sp"
-            android:visibility="gone">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="21dp"
+            android:layout_marginEnd="20dp">
+
+            <TextView
+                android:id="@+id/tvRecentTransactions"
+                android:layout_width="0dp"
+                android:layout_height="34dp"
+                android:fontFamily="@font/averta_std_semi_bold"
+                android:gravity="center_vertical"
+                android:text="@string/recent_transactions"
+                android:textColor="@color/normal_text_color"
+                android:textSize="@dimen/text_small_size"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <LinearLayout
+                android:id="@+id/transactionParentView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="48sp"
-                android:background="@color/color_bg_blue"
-                android:orientation="vertical" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="32sp"
-                android:layout_marginRight="32sp"
-                android:layout_marginBottom="32sp"
-                android:background="@drawable/bg_curv_white"
-                android:elevation="15sp"
-                android:orientation="vertical">
+                android:layout_height="0dp"
+                android:layout_above="@+id/space"
+                android:orientation="vertical"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                    android:id="@+id/mRefreshList"
+                    android:id="@+id/swipe_refresh"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/transactionView"
+
+                        android:id="@+id/rv_transactions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="6dp" />
+                        android:layout_marginHorizontal="20dp"
+                        tools:itemCount="10"
+                        tools:listitem="@layout/row_wallet_item" />
                 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
 
                 <TextView
                     android:id="@+id/noRecentTrans"
@@ -233,8 +255,8 @@
 
             </LinearLayout>
 
-        </RelativeLayout>
-    </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

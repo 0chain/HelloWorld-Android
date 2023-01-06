@@ -6,12 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.models.BalanceModel
+import org.zus.bolt.helloworld.models.TransactionModel
 import zcncore.GetInfoCallback
 import zcncore.Transaction
 import zcncore.TransactionCallback
 import zcncore.Zcncore
 
 class BoltViewModel : ViewModel() {
+    val transactions: MutableLiveData<List<TransactionModel>> = MutableLiveData()
+
     companion object {
         fun initZcncore() {
             /* initialize the sdk the with chain config. stored in config.json */
@@ -42,11 +45,11 @@ class BoltViewModel : ViewModel() {
         }
     }
 
-    fun sendTransaction(to: String) {
+    fun sendTransaction(to: String, amount: String) {
         Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
             .send(
                 /* receiver address = */ to,
-                /* amount = */ Zcncore.convertToValue(1.0).toString(),
+                /* amount = */ Zcncore.convertToValue(amount.toDouble()).toString(),
                 /* notes = */ "Hello world! sending tokens."
             )
     }
@@ -99,16 +102,28 @@ class BoltViewModel : ViewModel() {
         return response
     }
 
-    fun getTransactions() {
+    fun getTransactions(
+        toClientId: String,
+        fromClientId: String,
+        sortOrder: String,
+        limit: Long,
+        offset: Long,
+    ) {
         Zcncore.getTransactions(
-            /* reciever client id */ "",
-            /* sender client id */ "",
-            /* block hash optional */"",
-            /* sort (asc|desc)*/"",
-            /* limit. */ 10,
-            /* offset. */ 0,
-            getInfoCallback
-        )
+            toClientId,
+            fromClientId,
+/*block hash optional =*/"",
+            sortOrder,
+            limit,
+            offset
+        ) { _, _, json, error ->
+            if (error.isEmpty() && !json.isNullOrBlank() && json.isNotEmpty()) {
+                val transactions = Gson().fromJson(json, Array<TransactionModel>::class.java)
+                this.transactions.postValue(transactions.toList())
+            } else {
+                Log.e(TAG_BOLT, "getTransactions: $error")
+            }
+        }
     }
 
     fun getBlobbers() {
