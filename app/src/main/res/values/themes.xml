@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.HelloWorld" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="Theme.HelloWorld" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/vult_blue</item>
         <item name="colorPrimaryVariant">@color/website_zus_color_variant</item>
@@ -19,6 +19,12 @@
     <style name="Theme.HelloWorld.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="android:windowBackground">@color/website_zus_color</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_zus_logo_splash_white</item>
+        <item name="postSplashScreenTheme">@style/Theme.HelloWorld</item>
     </style>
 
     <style name="Theme.HelloWorld.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

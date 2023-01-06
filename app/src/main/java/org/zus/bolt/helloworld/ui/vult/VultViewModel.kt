@@ -135,6 +135,7 @@ class VultViewModel : ViewModel() {
                 "/",
                 /* file attrs =*/
                 fileAttr,
+                false,
                 statusCallbackMocked
             )
     }

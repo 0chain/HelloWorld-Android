@@ -35,6 +35,7 @@ class VultFragment : Fragment() {
         vultViewModel = ViewModelProvider(requireActivity())[VultViewModel::class.java]
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         boltViewModel = ViewModelProvider(requireActivity())[BoltViewModel::class.java]
+
         startFileActivityResultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -58,8 +59,8 @@ class VultFragment : Fragment() {
                 dataShards = 2,
                 parityShards = 2,
                 allocationSize = 2147483648,
-                expirationNanoSeconds = 2592000000,
-                lockTokens = Zcncore.convertToValue(1.0)
+                expirationNanoSeconds = 3600000000000,
+                lockTokens = Zcncore.convertToValue(0.5)
             )
         }
 

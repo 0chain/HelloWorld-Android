@@ -2,6 +2,7 @@ package org.zus.bolt.helloworld.ui.mainactivity
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -16,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         // viewModel to store the temporarliy created wallet until the app is running.
@@ -24,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         viewModel.wallet = Utils(applicationContext).getWalletModel()
+        viewModel.setWalletJson(Utils(applicationContext).readWalletFromFileJSON())
         // Setting app bar for the back button navigation.
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
