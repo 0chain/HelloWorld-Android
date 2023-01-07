@@ -31,7 +31,7 @@
             android:id="@+id/et_to_client_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="9e330d869f8e195c650a..."
+            android:hint="@string/enter_client_id_of_receiver"
             android:inputType="text"
             android:textColor="@color/white"
             android:textColorHint="@color/white" />
@@ -53,7 +53,7 @@
             android:id="@+id/amount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Amount"
+            android:hint="@string/enter_amount"
             android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
