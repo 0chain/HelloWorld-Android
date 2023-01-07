@@ -12,10 +12,12 @@
     <color name="normal_text_color">@color/white</color>
     <color name="color_bg_transaction">#FFFFFF</color>
     <color name="color_grey">#edecf4</color>
+    <color name="light_gray">#DDDBEB</color>
     <color name="color_bg_blue">#15ccba</color>
     <color name="color_border_light_grey">#cfcfcf</color>
     <color name="color_button_text_blue">#15ccba</color>
     <color name="website_zus_color">#020818</color>
     <color name="website_zus_color_variant">#052372</color>
+    <color name="file_dialog_background">@color/website_zus_color_variant_card_view</color>
     <color name="website_zus_color_variant_card_view">#1E2E58</color>
 </resources>

@@ -41,7 +41,8 @@
         app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
         app:cardCornerRadius="10dp"
         app:cardElevation="10dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="true"
+        android:focusable="true">
 
 
         <ImageView

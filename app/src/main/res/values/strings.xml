@@ -36,4 +36,8 @@
     <string name="enter_amount">Enter amount</string>
     <string name="receiver_client_id_">Receiver Client ID</string>
     <string name="_9e330d869f8e195c650a">9e330d869f8e195c650a...</string>
+    <string name="storage_used">50.1MB used of 2.15GB</string>
+    <string name="allocation_details">Allocation\n Details</string>
+    <string name="upload_document">Upload\n Document</string>
+    <string name="upload_image">Upload\n Image</string>
 </resources>

@@ -53,7 +53,7 @@ class VultFragment : Fragment() {
         // Storage SDK initialization and wallet initialization.
         vultViewModel.storageSDK =
             VultViewModel.initZboxStorageSDK(Utils.config, mainViewModel.wallet!!.walletJson)
-        binding.btnCreateAllocation.setOnClickListener {
+        /*binding.btnCreateAllocation.setOnClickListener {
             vultViewModel.createAllocation(
                 allocationName = "test allocation",
                 dataShards = 2,
@@ -62,21 +62,21 @@ class VultFragment : Fragment() {
                 expirationNanoSeconds = 3600000000000,
                 lockTokens = Zcncore.convertToValue(0.5)
             )
-        }
+        }*/
 
-
-        binding.btnUploadFile.setOnClickListener {
-            val getFile = Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
-                addCategory(Intent.CATEGORY_DEFAULT)
-            }
-            startFileActivityResultLauncher.launch(getFile)
-        }
-
-        binding.btnDownloadFile.setOnClickListener {
-
-        }
+//
+//        binding.btnUploadFile.setOnClickListener {
+//            val getFile = Intent(Intent.ACTION_GET_CONTENT).apply {
+//                type = "*/*"
+//                addCategory(Intent.CATEGORY_OPENABLE)
+//                addCategory(Intent.CATEGORY_DEFAULT)
+//            }
+//            startFileActivityResultLauncher.launch(getFile)
+//        }
+//
+//        binding.btnDownloadFile.setOnClickListener {
+//
+//        }
         return binding.root
     }
 }
