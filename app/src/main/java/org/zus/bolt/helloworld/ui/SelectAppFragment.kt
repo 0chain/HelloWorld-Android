@@ -10,7 +10,6 @@ import androidx.navigation.fragment.findNavController
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.SelectAppFragmentBinding
-import org.zus.bolt.helloworld.models.AppType
 import org.zus.bolt.helloworld.models.bolt.WalletModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
@@ -28,10 +27,8 @@ class SelectAppFragment : Fragment() {
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
         binding.cvBolt.setOnClickListener {
-            val actionSelectAppToCreateWallet =
-                SelectAppFragmentDirections.actionSelectAppFragmentToCreateWalletFragment(AppType.BOLT)
             if (!Utils(requireContext()).isWalletExist()) {
-                findNavController().navigate(actionSelectAppToCreateWallet)
+                findNavController().navigate(R.id.action_selectAppFragment_to_boltFragment)
             } else {
                 mainViewModel.wallet =
                     Gson().fromJson(
@@ -43,10 +40,8 @@ class SelectAppFragment : Fragment() {
             }
         }
         binding.cvVult.setOnClickListener {
-            val actionSelectAppToCreateWallet =
-                SelectAppFragmentDirections.actionSelectAppFragmentToCreateWalletFragment(AppType.VULT)
             if (!Utils(requireContext()).isWalletExist()) {
-                findNavController().navigate(actionSelectAppToCreateWallet)
+                findNavController().navigate(R.id.action_selectAppFragment_to_vultFragment)
             } else {
                 mainViewModel.wallet =
                     Gson().fromJson(

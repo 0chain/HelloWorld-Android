@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/selectAppFragment">
+    app:startDestination="@id/createWalletFragment">
     <fragment
         android:id="@+id/createWalletFragment"
         android:name="org.zus.bolt.helloworld.ui.CreateWalletFragment"
@@ -13,11 +13,8 @@
             android:name="app_type"
             app:argType="org.zus.bolt.helloworld.models.AppType" />
         <action
-            android:id="@+id/action_createWalletFragment_to_boltFragment"
-            app:destination="@id/boltFragment" />
-        <action
-            android:id="@+id/action_createWalletFragment_to_vultFragment"
-            app:destination="@id/vultFragment" />
+            android:id="@+id/action_createWalletFragment_to_selectAppFragment"
+            app:destination="@id/selectAppFragment" />
     </fragment>
     <fragment
         android:id="@+id/boltFragment"
@@ -33,13 +30,6 @@
         android:name="org.zus.bolt.helloworld.ui.SelectAppFragment"
         android:label="@string/label_select_app_fragment"
         tools:layout="@layout/select_app_fragment">
-        <action
-            android:id="@+id/action_selectAppFragment_to_createWalletFragment"
-            app:destination="@id/createWalletFragment">
-            <argument
-                android:name="app_type"
-                app:argType="org.zus.bolt.helloworld.models.AppType" />
-        </action>
         <action
             android:id="@+id/action_selectAppFragment_to_boltFragment"
             app:destination="@id/boltFragment" />

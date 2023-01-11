@@ -16,7 +16,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.jaiselrahman.filepicker.activity.FilePickerActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,6 +68,7 @@ class VultFragment : Fragment() {
                             MediaStore.Files.FileColumns.DISPLAY_NAME,
                             MediaStore.Files.FileColumns.SIZE,
                             MediaStore.Files.FileColumns.MIME_TYPE,
+                            MediaStore.Files.FileColumns.DOCUMENT_ID,
                         )
                         requireContext().contentResolver.query(uri, projections, null, null, null)
                             .use { cursor ->
@@ -76,7 +76,7 @@ class VultFragment : Fragment() {
                                 val name = cursor?.getString(0)
                                 val size = cursor?.getString(1)
                                 val type = cursor?.getString(2)
-                                val path = File(uri.path).absolutePath
+                                val path = cursor?.getString(3)
                                 Log.i(TAG_VULT, "File name: $name")
                                 Log.i(TAG_VULT, "File size: $size")
                                 Log.i(TAG_VULT, "File type: $type")
@@ -291,9 +291,7 @@ class VultFragment : Fragment() {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
             }
-            val filePickerIntent = Intent(requireActivity(), FilePickerActivity::class.java)
-            documentPicker.launch(filePickerIntent)
-//            documentPicker.launch(getFile)
+            documentPicker.launch(intent)
 //            getContent.launch("*/*")
 //            documentPicker.launch(intent)
         }

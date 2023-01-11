@@ -118,9 +118,9 @@ class Utils(var applicationContext: Context) {
 
     /* creates a file in the app's internal storage. */
     private fun createFile(fileName: String, content: String) {
-        applicationContext.openFileOutput(fileName, Context.MODE_PRIVATE).use {
-            it.write(content.toByteArray())
-        }
+        val files = applicationContext.filesDir
+        val file = File(files, fileName)
+        file.writeText(content)
     }
 
     private fun readFile(fileName: String): String {

@@ -1,6 +1,8 @@
 package org.zus.bolt.helloworld.ui
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +14,6 @@ import androidx.navigation.fragment.navArgs
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.CreateWalletFragmentBinding
-import org.zus.bolt.helloworld.models.AppType
 import org.zus.bolt.helloworld.models.bolt.WalletModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
@@ -42,12 +43,32 @@ class CreateWalletFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.btCreateWallet.setOnClickListener {
+        Handler(Looper.getMainLooper()).postDelayed({
+
             try {
                 val walletJsonStringFromFile = Utils(requireContext()).readWalletFromFileJSON()
-                if (walletJsonStringFromFile.isNullOrBlank() || walletJsonStringFromFile.isNullOrEmpty()) {
+
+                Log.i(
+                    TAG_CREATE_WALLET,
+                    "walletJsonStringFromFile: ${walletJsonStringFromFile.isBlank()}"
+                )
+                Log.i(
+                    TAG_CREATE_WALLET,
+                    "walletJsonStringFromFile: ${walletJsonStringFromFile.isEmpty()}"
+                )
+                Log.i(
+                    TAG_CREATE_WALLET,
+                    "walletJsonStringFromFile: ${walletJsonStringFromFile.isNullOrBlank()}"
+                )
+                Log.i(
+                    TAG_CREATE_WALLET,
+                    "walletJsonStringFromFile: ${walletJsonStringFromFile.isNullOrEmpty()}"
+                )
+
+                if (walletJsonStringFromFile.isBlank() || walletJsonStringFromFile.isEmpty()) {
                     Zcncore.createWallet { status, walletJson, error ->
                         if (status == 0L) {
+                            Log.i(TAG_CREATE_WALLET, "New Wallet created successfully")
                             Utils(requireContext()).saveWalletAsFile(walletJson)
                             processWallet(walletJson)
                         } else {
@@ -55,6 +76,7 @@ class CreateWalletFragment : Fragment() {
                         }
                     }
                 } else {
+                    Log.i(TAG_CREATE_WALLET, "Wallet already exists")
                     processWallet(walletJsonStringFromFile)
 
                 }
@@ -63,6 +85,7 @@ class CreateWalletFragment : Fragment() {
                 Log.d(TAG_CREATE_WALLET, "File not found")
                 Zcncore.createWallet { status, walletJson, error ->
                     if (status == 0L) {
+                        Log.i(TAG_CREATE_WALLET, "New Wallet created successfully")
                         Utils(requireContext()).saveWalletAsFile(walletJson)
                         processWallet(walletJson)
                     } else {
@@ -72,7 +95,7 @@ class CreateWalletFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
             }
-        }
+        }, 3000)
     }
 
     private fun processWallet(walletJson: String) {
@@ -83,10 +106,7 @@ class CreateWalletFragment : Fragment() {
             wallet.walletJson = walletJson
             Zcncore.setWalletInfo(walletJson, false)
             requireActivity().runOnUiThread {
-                when (args.appType) {
-                    AppType.BOLT -> findNavController().navigate(R.id.action_createWalletFragment_to_boltFragment)
-                    AppType.VULT -> findNavController().navigate(R.id.action_createWalletFragment_to_vultFragment)
-                }
+                findNavController().navigate(R.id.action_createWalletFragment_to_selectAppFragment)
             }
         } catch (e: Exception) {
             Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
