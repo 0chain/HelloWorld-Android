@@ -11,7 +11,7 @@ import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.SelectAppFragmentBinding
 import org.zus.bolt.helloworld.models.AppType
-import org.zus.bolt.helloworld.models.WalletModel
+import org.zus.bolt.helloworld.models.bolt.WalletModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
 
@@ -34,8 +34,10 @@ class SelectAppFragment : Fragment() {
                 findNavController().navigate(actionSelectAppToCreateWallet)
             } else {
                 mainViewModel.wallet =
-                    Gson().fromJson(Utils(requireContext()).readWalletFromFileJSON(),
-                        WalletModel::class.java)
+                    Gson().fromJson(
+                        Utils(requireContext()).readWalletFromFileJSON(),
+                        WalletModel::class.java
+                    )
                 mainViewModel.setWalletJson(Utils(requireContext()).readWalletFromFileJSON())
                 findNavController().navigate(R.id.action_selectAppFragment_to_boltFragment)
             }
@@ -47,10 +49,28 @@ class SelectAppFragment : Fragment() {
                 findNavController().navigate(actionSelectAppToCreateWallet)
             } else {
                 mainViewModel.wallet =
-                    Gson().fromJson(Utils(requireContext()).readWalletFromFileJSON(),
-                        WalletModel::class.java)
+                    Gson().fromJson(
+                        Utils(requireContext()).readWalletFromFileJSON(),
+                        WalletModel::class.java
+                    )
                 mainViewModel.setWalletJson(Utils(requireContext()).readWalletFromFileJSON())
                 findNavController().navigate(R.id.action_selectAppFragment_to_vultFragment)
+            }
+        }
+        if (mainViewModel.wallet == null) {
+            binding.tvWalletDetails.text = getString(R.string.no_wallet)
+        } else {
+            mainViewModel.wallet?.let {
+                binding.tvWalletDetails.text =
+                    getString(
+                        R.string.wallet_json_2,
+                        mainViewModel.wallet?.mClientId ?: "",
+                        mainViewModel.wallet?.mClientKey ?: "",
+                        mainViewModel.wallet?.mKeys ?: "",
+                        mainViewModel.wallet?.mMnemonics ?: "",
+                        mainViewModel.wallet?.mVersion ?: "",
+                        mainViewModel.wallet?.mDateCreated ?: "",
+                    )
             }
         }
         return binding.root

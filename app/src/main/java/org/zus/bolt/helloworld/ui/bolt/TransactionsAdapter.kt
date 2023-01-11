@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.zus.bolt.helloworld.R
-import org.zus.bolt.helloworld.models.TransactionModel
+import org.zus.bolt.helloworld.models.bolt.TransactionModel
 import org.zus.bolt.helloworld.utils.Utils
 
 class TransactionsAdapter(

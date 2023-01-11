@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
-import org.zus.bolt.helloworld.models.BalanceModel
-import org.zus.bolt.helloworld.models.TransactionModel
+import org.zus.bolt.helloworld.models.bolt.BalanceModel
+import org.zus.bolt.helloworld.models.bolt.TransactionModel
 import zcncore.GetInfoCallback
 import zcncore.Transaction
 import zcncore.TransactionCallback

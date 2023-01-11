@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.ClipboardManager
 import android.content.Context.CLIPBOARD_SERVICE
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,11 +14,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.textview.MaterialTextView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.BoltFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
-import zcncore.Zcncore
 import java.util.*
 
 public const val TAG_BOLT: String = "BoltFragment"
@@ -46,10 +49,15 @@ class BoltFragment : Fragment() {
             requireActivity().runOnUiThread {
                 boltViewModel.getWalletBalance().observe(viewLifecycleOwner) { balance ->
                     binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
-                    binding.zcnDollar.text = getString(
-                        R.string.zcn_dollar,
-                        Zcncore.convertTokenToUSD(balance.toDouble())
-                    )
+                    try {
+//                        binding.zcnDollar.text = getString(
+//                            R.string.zcn_dollar,
+//                            Zcncore.convertTokenToUSD(balance.toDouble())
+//                        )
+                    } catch (e: java.lang.NumberFormatException) {
+                        binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0)
+                        Log.e(TAG_BOLT, "updateBalance: error ", e)
+                    }
                 }
             }
         }
@@ -67,6 +75,10 @@ class BoltFragment : Fragment() {
         val transactionsAdapter = TransactionsAdapter(requireContext(), listOf())
         binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTransactions.adapter = transactionsAdapter
+
+        runBlocking {
+            boltViewModel.getBlobbers()
+        }
 
         boltViewModel.transactions.observe(viewLifecycleOwner) { transactions ->
             transactionsAdapter.transactions = transactions
@@ -137,6 +149,11 @@ class BoltFragment : Fragment() {
 
         updateTransactions()
         binding.swipeRefresh.setOnRefreshListener {
+            CoroutineScope(Dispatchers.IO).launch {
+                updateTransactions()
+                updateBalance()
+                binding.swipeRefresh.isRefreshing = false
+            }
             updateBalance()
             updateTransactions()
             binding.swipeRefresh.isRefreshing = false

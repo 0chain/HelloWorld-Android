@@ -3,6 +3,7 @@ package org.zus.bolt.helloworld.ui
 import android.app.Application
 import android.util.Log
 import org.zus.bolt.helloworld.utils.Utils
+import sdk.Sdk
 import zcncore.Zcncore
 
 private const val TAG_APP = "HelloWorldApplication"
@@ -30,8 +31,9 @@ class ZusExampleApplication : Application() {
         super.onCreate()
 
         try {
-            // Initialize Zcncore with chain config  at the start of the Application.
-            Zcncore.init(Utils.config)
+            // Initialize Zcncore and Sdk with chain config  at the start of the Application.
+            Zcncore.init(utils.config)
+            Sdk.init(utils.config)
             if (utils.isWalletExist())
                 Zcncore.setWalletInfo(utils.readWalletFromFileJSON(), false)
             Log.i(TAG_APP, "onCreate: sdk initialized successfully")

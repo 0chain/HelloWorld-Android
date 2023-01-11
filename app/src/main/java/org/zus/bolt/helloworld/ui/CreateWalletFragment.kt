@@ -13,7 +13,7 @@ import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.CreateWalletFragmentBinding
 import org.zus.bolt.helloworld.models.AppType
-import org.zus.bolt.helloworld.models.WalletModel
+import org.zus.bolt.helloworld.models.bolt.WalletModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
 import zcncore.Zcncore
