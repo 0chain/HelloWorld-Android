@@ -9,9 +9,6 @@
         android:name="org.zus.bolt.helloworld.ui.CreateWalletFragment"
         android:label="@string/label_create_wallet"
         tools:layout="@layout/create_wallet_fragment">
-        <argument
-            android:name="app_type"
-            app:argType="org.zus.bolt.helloworld.models.AppType" />
         <action
             android:id="@+id/action_createWalletFragment_to_selectAppFragment"
             app:destination="@id/selectAppFragment" />
@@ -27,7 +24,7 @@
         tools:layout="@layout/vult_fragment" />
     <fragment
         android:id="@+id/selectAppFragment"
-        android:name="org.zus.bolt.helloworld.ui.SelectAppFragment"
+        android:name="org.zus.bolt.helloworld.ui.selectapp.SelectAppFragment"
         android:label="@string/label_select_app_fragment"
         tools:layout="@layout/select_app_fragment">
         <action

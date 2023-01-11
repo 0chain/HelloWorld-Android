@@ -1,4 +1,4 @@
-package org.zus.bolt.helloworld.ui
+package org.zus.bolt.helloworld.ui.selectapp
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.SelectAppFragmentBinding
 import org.zus.bolt.helloworld.models.bolt.WalletModel
+import org.zus.bolt.helloworld.models.vult.AllocationModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
 
@@ -25,6 +26,31 @@ class SelectAppFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = SelectAppFragmentBinding.inflate(inflater, container, false)
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+
+        binding.cvWalletDetails.setOnClickListener {
+            val walletDetailsBottomScreenFragment =
+                WalletDetailsBottomScreenFragment(mainViewModel.wallet!!)
+            walletDetailsBottomScreenFragment.show(
+                parentFragmentManager,
+                "WalletDetailsBottomScreenFragment"
+            )
+        }
+        binding.cvAllocationDetails.setOnClickListener {
+            val allocationDetailsBottomScreenFragment =
+                AllocationDetailsBottomScreenFragment(AllocationModel())
+            allocationDetailsBottomScreenFragment.show(
+                parentFragmentManager,
+                "AllocationDetailsBottomScreenFragment"
+            )
+        }
+        binding.cvNetworkDetails.setOnClickListener {
+            val networkDetailsBottomScreenFragment =
+                NetworkDetailsBottomScreenFragment()
+            networkDetailsBottomScreenFragment.show(
+                parentFragmentManager,
+                "NetworkDetailsBottomScreenFragment"
+            )
+        }
 
         binding.cvBolt.setOnClickListener {
             if (!Utils(requireContext()).isWalletExist()) {
@@ -50,22 +76,6 @@ class SelectAppFragment : Fragment() {
                     )
                 mainViewModel.setWalletJson(Utils(requireContext()).readWalletFromFileJSON())
                 findNavController().navigate(R.id.action_selectAppFragment_to_vultFragment)
-            }
-        }
-        if (mainViewModel.wallet == null) {
-            binding.tvWalletDetails.text = getString(R.string.no_wallet)
-        } else {
-            mainViewModel.wallet?.let {
-                binding.tvWalletDetails.text =
-                    getString(
-                        R.string.wallet_json_2,
-                        mainViewModel.wallet?.mClientId ?: "",
-                        mainViewModel.wallet?.mClientKey ?: "",
-                        mainViewModel.wallet?.mKeys ?: "",
-                        mainViewModel.wallet?.mMnemonics ?: "",
-                        mainViewModel.wallet?.mVersion ?: "",
-                        mainViewModel.wallet?.mDateCreated ?: "",
-                    )
             }
         }
         return binding.root

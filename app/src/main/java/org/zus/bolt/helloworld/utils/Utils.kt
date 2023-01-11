@@ -18,9 +18,19 @@ import java.io.FileNotFoundException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Utils(var applicationContext: Context) {
+class Utils(private var applicationContext: Context) {
     companion object {
-        fun getDateTime(s: Long): String? {
+        fun getDateTime(s: Int): String {
+            try {
+                val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
+                val netDate = Date(s.toLong())
+                return sdf.format(netDate)
+            } catch (e: Exception) {
+                return e.toString()
+            }
+        }
+
+        fun getDateTime(s: Long): String {
             try {
                 val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
                 val netDate = Date(s)
@@ -80,7 +90,7 @@ class Utils(var applicationContext: Context) {
         Log.i("TAG", "config JSON: $config")
     }
 
-    private fun getConfigFromAssets(configFileName: String): String? {
+    fun getConfigFromAssets(configFileName: String): String? {
         return try {
             val json = applicationContext.assets.open(configFileName).bufferedReader().use {
                 it.readText()

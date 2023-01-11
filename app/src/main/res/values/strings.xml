@@ -60,4 +60,6 @@
     </string>
     <string name="no_wallet">Create a wallet first</string>
     <string name="no_allocation">No allocation</string>
+    <string name="wallet_details">Wallet\n Details</string>
+    <string name="network_details">Network\n Details</string>
 </resources>

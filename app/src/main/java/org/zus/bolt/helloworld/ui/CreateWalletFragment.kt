@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.CreateWalletFragmentBinding
@@ -27,7 +26,6 @@ class CreateWalletFragment : Fragment() {
     private var _binding: CreateWalletFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel: MainViewModel
-    val args: CreateWalletFragmentArgs by navArgs()
 
 
     override fun onCreateView(
@@ -88,6 +86,7 @@ class CreateWalletFragment : Fragment() {
                         Log.i(TAG_CREATE_WALLET, "New Wallet created successfully")
                         Utils(requireContext()).saveWalletAsFile(walletJson)
                         processWallet(walletJson)
+
                     } else {
                         Log.e(TAG_CREATE_WALLET, "Error: $error")
                     }
@@ -95,7 +94,7 @@ class CreateWalletFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
             }
-        }, 3000)
+        }, 1000)
     }
 
     private fun processWallet(walletJson: String) {
