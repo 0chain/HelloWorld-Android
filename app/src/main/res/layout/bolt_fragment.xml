@@ -20,7 +20,7 @@
             android:layout_height="30dp"
             android:layout_marginStart="20dp"
             android:layout_marginTop="30dp"
-            android:src="@drawable/ic_fragments_header" />
+            android:src="@drawable/ic_bolt_logo" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -109,9 +109,9 @@
                     android:id="@+id/msendToken"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:layout_weight="1"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
                     tools:ignore="UseCompoundDrawables">
@@ -138,8 +138,9 @@
                     android:id="@+id/mreceiveToken"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:clickable="true"
-                    android:focusable="true"    android:layout_weight="1"
+                    android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical"
                     tools:ignore="UseCompoundDrawables">
@@ -166,8 +167,9 @@
                     android:id="@+id/mFaucet"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:clickable="true"
-                    android:focusable="true"    android:layout_weight="1"
+                    android:focusable="true"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
                     tools:ignore="UseCompoundDrawables">

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBinding
 import org.zus.bolt.helloworld.models.bolt.WalletModel
 
@@ -16,10 +17,10 @@ class WalletDetailsBottomScreenFragment(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = GenericBottomSheetDetailsFragmentBinding.inflate(inflater, container, false)
 
-        binding.tvPageTitle.text = "Wallet Details"
+        binding.tvPageTitle.text = getString(R.string.wallet_details_title)
 
         val walletDetails: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>()
             .apply {

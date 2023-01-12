@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.gson.Gson
+import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBinding
 import org.zus.bolt.helloworld.models.NetworkModel
 import org.zus.bolt.helloworld.utils.Utils
@@ -17,11 +18,11 @@ class NetworkDetailsBottomScreenFragment : BottomSheetDialogFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             GenericBottomSheetDetailsFragmentBinding.inflate(inflater, container, false)
 
-        binding.tvPageTitle.text = "Network Details"
+        binding.tvPageTitle.text = getString(R.string.network_details_title)
 
         networkModel = Gson().fromJson(
             Utils(requireContext()).getConfigFromAssets("config.json"),

@@ -16,6 +16,6 @@
         android:gravity="center"
         android:padding="10dp"
         android:text="@string/transaction_list_item"
-        android:textColor="@color/white"
+        android:textColor="@color/normal_text_color"
         android:textSize="16sp" />
 </androidx.cardview.widget.CardView>

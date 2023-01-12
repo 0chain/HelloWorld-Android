@@ -62,4 +62,11 @@
     <string name="no_allocation">No allocation</string>
     <string name="wallet_details">Wallet\n Details</string>
     <string name="network_details">Network\n Details</string>
+    <string name="generic_title">Generic Title</string>
+    <string name="details">Details</string>
+    <string name="sample_client_id">4tu4934u903j49gj439gj9340jg9034jg89034hg89h4398gh4839gh9834hg</string>
+    <string name="title_client_id">Client ID:</string>
+    <string name="network_details_title">Network Details</string>
+    <string name="allocation_details_title">Allocation Details</string>
+    <string name="wallet_details_title">Wallet Details</string>
 </resources>

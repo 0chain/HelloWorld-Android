@@ -209,6 +209,7 @@ class VultViewModel : ViewModel() {
                     "/$fileName",
                     /*file attrs =*/
                     fileAttr,
+                    false,
                     statusCallbackMocked
                 )
             } catch (e: Exception) {

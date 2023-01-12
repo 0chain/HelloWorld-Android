@@ -1,0 +1,55 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.HelloWorld" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/vult_blue</item>
+        <item name="colorPrimaryVariant">@color/website_zus_color_variant</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/green_bolt</item>
+        <item name="colorSecondaryVariant">@color/green_bolt_variant</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="21">@color/website_zus_color_variant
+        </item>
+        <!--        <item name="android:statusBarColor" tools:targetApi="21">?attr/colorPrimaryVariant</item>-->
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.HelloWorld.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="android:windowBackground">@color/website_zus_color</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_zus_logo_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.HelloWorld</item>
+    </style>
+
+    <style name="CardTextView" parent="Widget.MaterialComponents.TextView">
+        <item name="android:textSize">12dp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:gravity">center_horizontal</item>
+    </style>
+
+    <style name="SemiBoldFourteen">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/averta_std_semi_bold</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RegularTwelve">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">@font/averta_standard_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="Theme.HelloWorld.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.HelloWorld.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
+</resources>
