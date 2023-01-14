@@ -4,20 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <!--<com.google.android.material.textview.MaterialTextView
-        android:id="@+id/materialTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="Send Token"
-        android:textColor="@color/normal_text_color"
-        android:textSize="40sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />-->
-
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout2"
+        android:id="@+id/clientIdTextInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -39,7 +27,7 @@
 
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout"
+        android:id="@+id/amountTextInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -47,7 +35,7 @@
         android:textColorHint="@color/normal_text_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout2">
+        app:layout_constraintTop_toBottomOf="@+id/clientIdTextInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/amount"
@@ -56,26 +44,4 @@
             android:hint="@string/enter_amount"
             android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- <com.google.android.material.button.MaterialButton
-         android:id="@+id/materialButton"
-         android:layout_width="0dp"
-         android:layout_height="wrap_content"
-         android:layout_margin="10dp"
-         android:text="Cancel"
-         app:layout_constraintEnd_toStartOf="@+id/materialButton2"
-         app:layout_constraintHorizontal_bias="0.5"
-         app:layout_constraintStart_toStartOf="parent"
-         app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
-
-     <com.google.android.material.button.MaterialButton
-         android:id="@+id/materialButton2"
-         android:layout_width="0dp"
-         android:layout_height="wrap_content"
-         android:layout_margin="10dp"
-         android:text="Send"
-         app:layout_constraintBaseline_toBaselineOf="@+id/materialButton"
-         app:layout_constraintEnd_toEndOf="parent"
-         app:layout_constraintHorizontal_bias="0.5"
-         app:layout_constraintStart_toEndOf="@+id/materialButton" />-->
 </androidx.constraintlayout.widget.ConstraintLayout>

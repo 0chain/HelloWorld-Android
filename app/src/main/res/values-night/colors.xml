@@ -8,7 +8,7 @@
     <color name="color_background">@color/website_zus_color</color>
     <color name="normal_text_color">@color/white</color>
     <color name="color_bg_transaction">#FFFFFF</color>
-    <color name="color_grey">#edecf4</color>
+    <color name="color_grey">@color/website_zus_color</color>
     <color name="light_gray">#DDDBEB</color>
     <color name="color_bg_blue">#15ccba</color>
     <color name="color_border_light_grey">#cfcfcf</color>

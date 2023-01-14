@@ -1,242 +1,243 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/myFrame"
+    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/website_zus_color"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/myRoot"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/myFrame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        tools:ignore="RtlSymmetry">
-
-        <ImageView
-            android:layout_width="63dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="30dp"
-            android:src="@drawable/ic_bolt_logo" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="31dp"
-            android:text="@string/available_balance"
-            android:textColor="@color/normal_text_color"
-            android:textSize="@dimen/text_small_size" />
+        android:background="@color/website_zus_color"
+        android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/myRoot"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            tools:ignore="RtlSymmetry">
 
-            <TextView
-                android:id="@+id/zcnBalance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/averta_std_bold"
-                android:text="@string/base_token"
-                android:textColor="@color/normal_text_color"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/zcnBalanceSymbol"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="@string/base_token"
-                android:textColor="@color/normal_text_color"
-                android:textSize="@dimen/text_normal_size" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="22dp"
-            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="63dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="30dp"
+                android:src="@drawable/ic_bolt_logo" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/total_balance"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="31dp"
+                android:text="@string/available_balance"
                 android:textColor="@color/normal_text_color"
-                android:textSize="@dimen/text_normal_size" />
-
-            <TextView
-                android:id="@+id/zcnDollar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:fontFamily="@font/averta_std_bold"
-                android:text="@string/base_dollar"
-                android:textColor="@color/normal_text_color"
-                android:textSize="@dimen/text_normal_size"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="17dp"
-            android:layout_marginEnd="12dp"
-            app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-            app:cardCornerRadius="12dp"
-            app:cardUseCompatPadding="true"
-            tools:ignore="MissingConstraints">
+                android:textSize="@dimen/text_small_size" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="10dp"
-                android:paddingTop="16dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="16dp"
-                android:weightSum="3">
+                android:layout_marginStart="20dp"
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:id="@+id/msendToken"
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/zcnBalance"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    tools:ignore="UseCompoundDrawables">
+                    android:fontFamily="@font/averta_std_bold"
+                    android:text="@string/base_token"
+                    android:textColor="@color/normal_text_color"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/image_place_holder_text"
-                        android:src="@drawable/ic_send" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="@font/averta_std_semi_bold"
-                        android:text="@string/send"
-                        android:textColor="@color/normal_text_color"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/mreceiveToken"
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/zcnBalanceSymbol"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    tools:ignore="UseCompoundDrawables">
-
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/image_place_holder_text"
-                        android:src="@drawable/ic_receive" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="@font/averta_std_semi_bold"
-                        android:text="@string/receive"
-                        android:textColor="@color/normal_text_color"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/mFaucet"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    tools:ignore="UseCompoundDrawables">
-
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/image_place_holder_text"
-                        android:src="@drawable/ic_send" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="@font/averta_std_semi_bold"
-                        android:text="@string/faucet"
-                        android:textColor="@color/normal_text_color"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
+                    android:layout_marginStart="6dp"
+                    android:text="@string/base_token"
+                    android:textColor="@color/normal_text_color"
+                    android:textSize="@dimen/text_normal_size" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="21dp"
-            android:layout_marginEnd="20dp">
-
-            <TextView
-                android:id="@+id/tvRecentTransactions"
-                android:layout_width="0dp"
-                android:layout_height="34dp"
-                android:fontFamily="@font/averta_std_semi_bold"
-                android:gravity="center_vertical"
-                android:text="@string/recent_transactions"
-                android:textColor="@color/normal_text_color"
-                android:textSize="@dimen/text_small_size"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
             <LinearLayout
-                android:id="@+id/transactionParentView"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:orientation="vertical"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="22dp"
+                android:orientation="horizontal">
 
-                <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                    android:id="@+id/swipe_refresh"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total_balance"
+                    android:textColor="@color/normal_text_color"
+                    android:textSize="@dimen/text_normal_size" />
+
+                <TextView
+                    android:id="@+id/zcnDollar"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/averta_std_bold"
+                    android:text="@string/base_dollar"
+                    android:textColor="@color/normal_text_color"
+                    android:textSize="@dimen/text_normal_size"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="17dp"
+                android:layout_marginEnd="12dp"
+                app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
+                app:cardCornerRadius="12dp"
+                app:cardUseCompatPadding="true"
+                tools:ignore="MissingConstraints">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="10dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="16dp"
+                    android:weightSum="3">
+
+                    <LinearLayout
+                        android:id="@+id/msendToken"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        tools:ignore="UseCompoundDrawables">
+
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@string/image_place_holder_text"
+                            android:src="@drawable/ic_send" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/averta_std_semi_bold"
+                            android:text="@string/send"
+                            android:textColor="@color/normal_text_color"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/mreceiveToken"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        tools:ignore="UseCompoundDrawables">
+
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@string/image_place_holder_text"
+                            android:src="@drawable/ic_receive" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/averta_std_semi_bold"
+                            android:text="@string/receive"
+                            android:textColor="@color/normal_text_color"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/mFaucet"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        tools:ignore="UseCompoundDrawables">
+
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@string/image_place_holder_text"
+                            android:src="@drawable/ic_send" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/averta_std_semi_bold"
+                            android:text="@string/faucet"
+                            android:textColor="@color/normal_text_color"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="21dp"
+                android:layout_marginEnd="20dp">
+
+                <TextView
+                    android:id="@+id/tvRecentTransactions"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:fontFamily="@font/averta_std_semi_bold"
+                    android:gravity="center_vertical"
+                    android:text="@string/recent_transactions"
+                    android:textColor="@color/normal_text_color"
+                    android:textSize="@dimen/text_small_size"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/transactionParentView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
 
                     <androidx.recyclerview.widget.RecyclerView
 
@@ -246,22 +247,22 @@
                         android:layout_marginHorizontal="20dp"
                         tools:itemCount="10"
                         tools:listitem="@layout/row_wallet_item" />
-                </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-                <TextView
-                    android:id="@+id/noRecentTrans"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:text="@string/no_recent_transaction"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
+                    <TextView
+                        android:id="@+id/noRecentTrans"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:text="@string/no_recent_transaction"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
 
-            </LinearLayout>
+                </LinearLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </LinearLayout>
+        </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

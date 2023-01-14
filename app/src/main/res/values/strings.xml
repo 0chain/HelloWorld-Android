@@ -9,7 +9,7 @@
     <string name="hello_second_fragment">Vult App</string>
     <string name="title_activity_main2">Splash Activity</string>
 
-    <string name="zcn_balance">%1$s ZCN</string>
+    <string name="zcn_balance">%1$s</string>
     <string name="zcn_dollar">$%1$.1f</string>
     <string name="no_recent_transaction">No Recent Transactions</string>
     <string name="receive">Receive</string>

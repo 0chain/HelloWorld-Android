@@ -39,7 +39,7 @@ class VultFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = VultFragmentBinding.inflate(inflater, container, false)
         vultViewModel = ViewModelProvider(requireActivity())[VultViewModel::class.java]
@@ -84,18 +84,14 @@ class VultFragment : Fragment() {
 
                                 /* Uploading files. */
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    requireActivity().runOnUiThread {
-                                        binding.swipeRefreshLayout.isRefreshing = true
-                                    }
+                                    isRefresh(true)
                                     vultViewModel.uploadFile(
                                         workDir = requireContext().filesDir.absolutePath,
                                         fileName = name ?: "no name found",
                                         filePathURI = path,
                                         fileAttr = type
                                     )
-                                    requireActivity().runOnUiThread {
-                                        binding.swipeRefreshLayout.isRefreshing = false
-                                    }
+                                    isRefresh(false)
                                 }
                             }
                     }
@@ -127,18 +123,14 @@ class VultFragment : Fragment() {
                         Log.i(TAG_VULT, "File type: $type")
                         /* Uploading files. */
                         CoroutineScope(Dispatchers.IO).launch {
-                            requireActivity().runOnUiThread {
-                                binding.swipeRefreshLayout.isRefreshing = true
-                            }
+                            isRefresh(true)
                             vultViewModel.uploadFile(
                                 workDir = requireContext().filesDir.absolutePath,
                                 fileName = name ?: "no name found",
                                 filePathURI = path,
                                 fileAttr = type
                             )
-                            requireActivity().runOnUiThread {
-                                binding.swipeRefreshLayout.isRefreshing = false
-                            }
+                            isRefresh(false)
                         }
                     }
                 }
@@ -173,18 +165,14 @@ class VultFragment : Fragment() {
                             Log.i(TAG_VULT, "file type: $type")
                             /* Uploading files. */
                             CoroutineScope(Dispatchers.IO).launch {
-                                requireActivity().runOnUiThread {
-                                    binding.swipeRefreshLayout.isRefreshing = true
-                                }
+                                isRefresh(true)
                                 vultViewModel.uploadFile(
                                     workDir = requireContext().filesDir.absolutePath,
                                     fileName = name ?: "no name found",
                                     filePathURI = path,
                                     fileAttr = type
                                 )
-                                requireActivity().runOnUiThread {
-                                    binding.swipeRefreshLayout.isRefreshing = false
-                                }
+                                isRefresh(false)
                             }
 
                         }
@@ -298,13 +286,11 @@ class VultFragment : Fragment() {
         binding.swipeRefreshLayout.setOnRefreshListener {
             CoroutineScope(Dispatchers.IO).launch {
                 vultViewModel.listFiles("/")
-                binding.swipeRefreshLayout.isRefreshing = false
+                isRefresh(false)
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
-            requireActivity().runOnUiThread {
-                binding.swipeRefreshLayout.isRefreshing = true
-            }
+            isRefresh(true)
 
             // Storage SDK initialization and wallet initialization.
             vultViewModel.storageSDK =
@@ -340,11 +326,16 @@ class VultFragment : Fragment() {
 //            CoroutineScope(Dispatchers.Main).launch {
             vultViewModel.getAllocation()
             vultViewModel.listFiles("/")
-            binding.swipeRefreshLayout.isRefreshing = false
+            isRefresh(false)
 //            }
         }
 
         return binding.root
     }
 
+    private fun isRefresh(bool: Boolean) {
+        requireActivity().runOnUiThread {
+            binding.swipeRefreshLayout.isRefreshing = bool
+        }
+    }
 }
