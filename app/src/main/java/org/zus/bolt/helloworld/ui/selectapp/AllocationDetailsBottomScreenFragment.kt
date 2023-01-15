@@ -9,6 +9,8 @@ import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBinding
 import org.zus.bolt.helloworld.models.vult.AllocationModel
 import org.zus.bolt.helloworld.utils.Utils
+import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedDateTime
+import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedSize
 
 class AllocationDetailsBottomScreenFragment(
     private val allocationModel: AllocationModel
@@ -28,8 +30,8 @@ class AllocationDetailsBottomScreenFragment(
             mutableListOf<Pair<String, String>>().apply {
                 add(Pair("Allocation ID:", allocationModel[0].id))
                 add(Pair("Name:", allocationModel[0].name))
-                add(Pair("Expiration:", Utils.getDateTime(allocationModel[0].expirationDate)))
-                add(Pair("Size:", Utils.getStorage(allocationModel[0].size)))
+                add(Pair("Expiration:", allocationModel[0].expirationDate.getConvertedDateTime()))
+                add(Pair("Size:", allocationModel[0].size.getConvertedSize()))
             }
 
         val linearArrayAdapter = DetailsListAdapter(allocationDetails)

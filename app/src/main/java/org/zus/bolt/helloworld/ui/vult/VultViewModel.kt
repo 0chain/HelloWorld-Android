@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.zus.bolt.helloworld.models.blobber.BlobberNodeModel
 import org.zus.bolt.helloworld.models.blobber.BlobbersUrlIdModel
+import org.zus.bolt.helloworld.models.blobber.StatsModel
 import org.zus.bolt.helloworld.models.vult.AllocationModel
 import org.zus.bolt.helloworld.models.vult.FileModel
 import org.zus.bolt.helloworld.models.vult.FileResponseModel
@@ -137,7 +138,7 @@ class VultViewModel : ViewModel() {
         expirationNanoSeconds: Long,
         lockTokens: String,
         blobbersUrls: String,
-        blobberIds: String
+        blobberIds: String,
     ) {
         Log.i(TAG_VULT, "createAllocationWithBlobber: ")
         Log.i(TAG_VULT, "createAllocationWithBlobber: allocationName: $allocationName")
@@ -192,7 +193,7 @@ class VultViewModel : ViewModel() {
         workDir: String,
         fileName: String,
         filePathURI: String?,
-        fileAttr: String?
+        fileAttr: String?,
     ) {
         withContext(Dispatchers.IO) {
             Log.i(TAG_VULT, "uploadFile: ")
@@ -260,6 +261,17 @@ class VultViewModel : ViewModel() {
             id = blobberIds.joinToString(","),
             url = blobberUrls.joinToString(",")
         )
+    }
+
+    fun getStats(json: String): StatsModel {
+        try {
+            val statsModel = Gson().fromJson(json, StatsModel::class.java)
+            Log.i(TAG_VULT, "getStats: stats: $statsModel")
+            return statsModel
+        } catch (e: Exception) {
+            Log.e(TAG_VULT, "getStats Exception: ", e)
+            throw Exception("getStats Exception: $e")
+        }
     }
 
     private fun getBlobbers(): BlobberNodeModel {

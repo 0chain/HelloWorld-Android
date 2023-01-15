@@ -41,7 +41,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.activity:activity:1.6.1'
     implementation 'androidx.activity:activity-ktx:1.6.1'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.0'
     implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
@@ -74,6 +74,33 @@ dependencies {
 
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+// Automatically extracts and sets the gosdk `zcncore.aar` into app libs directory.
+task extractFromTar {
+    def goSdkTarFilePath = '/home/ubuntu/Downloads/0chain/zcncore/zcncore-android.tar.gz'
+
+    doFirst {
+        println("Extracting zcncore.aar from tar file: " + goSdkTarFilePath)
+        exec {
+            commandLine 'tar', '-xvf', goSdkTarFilePath
+            workingDir 'libs'
+        }
+        println("Moving the extracted zcncore.aar to libs directory")
+        exec {
+            commandLine 'mv', 'out/androidsdk/zcncore.aar', 'zcncore.aar'
+            workingDir 'libs'
+        }
+        println("Deleting the folder out from libs directory")
+        exec {
+            commandLine 'rm', '-rf', 'out'
+            workingDir 'libs'
+        }
+        println("Deleting the tar file from $goSdkTarFilePath directory")
+        exec {
+            commandLine 'rm', '-rf', goSdkTarFilePath
+        }
+    }
 }

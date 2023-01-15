@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.models.bolt.TransactionModel
-import org.zus.bolt.helloworld.utils.Utils
+import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedDateTime
 
 class TransactionsAdapter(
     var context: Context,
@@ -38,7 +38,7 @@ class TransactionsAdapter(
             /* hash = */
             transactions[position].hash.substring(0, 6),
             /* date time= */
-            Utils.getDateTime(transactions[position].creation_date),
+            transactions[position].creation_date.getConvertedDateTime()
         )
     }
 

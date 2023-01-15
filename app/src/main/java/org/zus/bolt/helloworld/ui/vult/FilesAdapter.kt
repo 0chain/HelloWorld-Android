@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.models.vult.FileModel
-import org.zus.bolt.helloworld.utils.Utils
+import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedSize
 
 class FilesAdapter(
     var files: List<FileModel>,
@@ -33,7 +33,7 @@ class FilesAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.fileName.text = files[position].name
-        holder.fileSize.text = Utils.Companion.getStorage(files[position].size)
+        holder.fileSize.text = files[position].size.getConvertedSize()
         if (files[position].mimetype.contains("image"))
             holder.ivIcon.setImageResource(R.drawable.ic_upload_image)
         else

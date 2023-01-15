@@ -20,27 +20,30 @@ import java.util.*
 
 class Utils(private var applicationContext: Context) {
     companion object {
-        fun getDateTime(s: Int): String {
-            try {
+        fun Int.getConvertedDateTime(): String {
+            val s = this
+            return try {
                 val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
                 val netDate = Date(s.toLong())
-                return sdf.format(netDate)
+                sdf.format(netDate)
             } catch (e: Exception) {
-                return e.toString()
+                e.toString()
             }
         }
 
-        fun getDateTime(s: Long): String {
-            try {
+        fun Long.getConvertedDateTime(): String {
+            val s = this
+            return try {
                 val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
                 val netDate = Date(s)
-                return sdf.format(netDate)
+                sdf.format(netDate)
             } catch (e: Exception) {
-                return e.toString()
+                e.toString()
             }
         }
 
-        fun getStorage(size: Int): String {
+        fun Int.getConvertedSize(): String {
+            val size = this
             val gb = 1024 * 1024 * 1024
             val mb = 1024 * 1024
             val kb = 1024
@@ -60,7 +63,8 @@ class Utils(private var applicationContext: Context) {
             }
         }
 
-        fun getStorage(size: Long): String {
+        fun Long.getConvertedSize(): String {
+            val size = this
             val gb = 1024 * 1024 * 1024
             val mb = 1024 * 1024
             val kb = 1024
@@ -269,7 +273,7 @@ class Utils(private var applicationContext: Context) {
 
     fun getDataColumn(
         uri: Uri?, selection: String?,
-        selectionArgs: Array<String>?
+        selectionArgs: Array<String>?,
     ): String? {
         var cursor: Cursor? = null
         val column = "_data"
@@ -296,7 +300,7 @@ class Utils(private var applicationContext: Context) {
     fun getFilePath(uri: Uri?): String? {
         var cursor: Cursor? = null
         val projection = arrayOf(
-            MediaStore.MediaColumns.DISPLAY_NAME
+            MediaStore.MediaColumns.DATA
         )
         try {
             if (uri == null) return null
@@ -305,8 +309,7 @@ class Utils(private var applicationContext: Context) {
                 null
             )
             if (cursor != null && cursor.moveToFirst()) {
-                val index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
-                return cursor.getString(index)
+                return cursor.getString(0)
             }
         } finally {
             cursor?.close()

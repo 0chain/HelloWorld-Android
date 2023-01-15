@@ -4,7 +4,7 @@ package org.zus.bolt.helloworld.models.vult
 import com.google.gson.annotations.SerializedName
 import org.zus.bolt.helloworld.models.blobber.BlobberDetail
 import org.zus.bolt.helloworld.models.blobber.ReadPriceRange
-import org.zus.bolt.helloworld.models.blobber.Stats
+import org.zus.bolt.helloworld.models.blobber.StatsModel
 import org.zus.bolt.helloworld.models.blobber.WritePriceRange
 import zcncore.Blobber
 
@@ -42,7 +42,7 @@ data class CliAllocationsModelItem(
     @SerializedName("start_time")
     val startTime: Int,
     @SerializedName("stats")
-    val stats: Stats,
+    val statsModel: StatsModel,
     @SerializedName("time_unit")
     val timeUnit: Long,
     @SerializedName("tx")
@@ -50,5 +50,5 @@ data class CliAllocationsModelItem(
     @SerializedName("write_pool")
     val writePool: Long,
     @SerializedName("write_price_range")
-    val writePriceRange: WritePriceRange
+    val writePriceRange: WritePriceRange,
 )

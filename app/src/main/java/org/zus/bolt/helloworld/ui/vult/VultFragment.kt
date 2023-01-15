@@ -2,10 +2,12 @@ package org.zus.bolt.helloworld.ui.vult
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -24,8 +26,10 @@ import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.VultFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
+import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedDateTime
 import zcncore.Zcncore
 import java.io.File
+import java.io.FileOutputStream
 import java.util.*
 
 const val TAG_VULT = "VultFragment"
@@ -44,103 +48,35 @@ class VultFragment : Fragment() {
         binding = VultFragmentBinding.inflate(inflater, container, false)
         vultViewModel = ViewModelProvider(requireActivity())[VultViewModel::class.java]
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-        val fileOpener =
-            registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-                if (result != null) {
-                    /* Uploading files. */
-                    val uri = result
-                    Log.i(TAG_VULT, "file path uri ${uri.path}")
-//                    val fileName = Utils(requireContext()).getFileName(uri!!)
-                    val filePath = File(uri.path).absolutePath
-//                    Log.i(TAG_VULT, "File path: $fileName")
-                    Log.i(TAG_VULT, "File path: $filePath")
-                }
-            }
+
         val documentPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     val result: Intent? = result.data
                     if (result != null) {
                         /* Uploading files. */
-                        val uri = result.data
-                        Log.i(TAG_VULT, "file path uri ${uri!!.path}")
-                        val projections = arrayOf(
-                            MediaStore.Files.FileColumns.DISPLAY_NAME,
-                            MediaStore.Files.FileColumns.SIZE,
-                            MediaStore.Files.FileColumns.MIME_TYPE,
-                            MediaStore.Files.FileColumns.DOCUMENT_ID,
-                        )
-                        requireContext().contentResolver.query(uri, projections, null, null, null)
-                            .use { cursor ->
-                                cursor?.moveToFirst()
-                                val name = cursor?.getString(0)
-                                val size = cursor?.getString(1)
-                                val type = cursor?.getString(2)
-                                val path = cursor?.getString(3)
-                                Log.i(TAG_VULT, "File name: $name")
-                                Log.i(TAG_VULT, "File size: $size")
-                                Log.i(TAG_VULT, "File type: $type")
-                                Log.i(TAG_VULT, "File path: $path")
-
-                                /* Uploading files. */
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    isRefresh(true)
-                                    vultViewModel.uploadFile(
-                                        workDir = requireContext().filesDir.absolutePath,
-                                        fileName = name ?: "no name found",
-                                        filePathURI = path,
-                                        fileAttr = type
-                                    )
-                                    isRefresh(false)
-                                }
-                            }
-                    }
-                }
-            }
-        val getContent =
-            registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-                /* Uploading files. */
-                Log.i(TAG_VULT, "file path uri ${uri!!.path}")
-//                val fileName = Utils(requireContext()).getFileName(uri!!)
-                val filePath = File(uri.path).absolutePath
-                Log.i(TAG_VULT, "File path: $filePath")
-
-                val projection = arrayOf(
-                    MediaStore.Files.FileColumns.DATA,
-                    MediaStore.Files.FileColumns.DISPLAY_NAME,
-                    MediaStore.Files.FileColumns.SIZE,
-                    MediaStore.Files.FileColumns.MIME_TYPE
-                )
-                requireContext().contentResolver.query(uri, projection, null, null, null).use {
-                    if (it != null && it.moveToFirst()) {
-                        val path = it.getString(0)
-                        val name = it.getString(1)
-                        val size = it.getLong(2)
-                        val type = it.getString(3)
-                        Log.i(TAG_VULT, "File path: $path")
-                        Log.i(TAG_VULT, "File name: $name")
-                        Log.i(TAG_VULT, "File size: $size")
-                        Log.i(TAG_VULT, "File type: $type")
-                        /* Uploading files. */
+                        val uri = result.data!!
+                        Log.i(TAG_VULT, "Uri: $uri")
+                        Log.i(TAG_VULT, "Uri path: ${uri.path}")
+                        Log.i(TAG_VULT, "File name: ${Utils(requireContext()).getFileName(uri)}")
+                        val filePath = makeFileCopyInCacheDir(uri)
                         CoroutineScope(Dispatchers.IO).launch {
-                            isRefresh(true)
                             vultViewModel.uploadFile(
-                                workDir = requireContext().filesDir.absolutePath,
-                                fileName = name ?: "no name found",
-                                filePathURI = path,
-                                fileAttr = type
+                                requireContext().filesDir.absolutePath,
+                                Utils(requireContext()).getFileName(uri),
+                                filePath,
+                                ""
                             )
-                            isRefresh(false)
                         }
                     }
                 }
             }
+
         val photoPicker =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                 if (uri != null) {
                     Log.i(TAG_VULT, "file path: uri: ${uri.path}")
                     val fileName = Utils(requireContext()).getFileName(uri)
-//                    val filePath = requireContext().contentResolver.openFile(uri, "r", null)
                     val filePath = File(uri.path).absolutePath
                     Log.i(TAG_VULT, "file name: $fileName")
                     Log.i(TAG_VULT, "file path: $filePath")
@@ -181,11 +117,6 @@ class VultFragment : Fragment() {
                 }
             }
 
-        /*binding.tvStorageUsed.text = getString(
-            R.string.storage_used,
-            if (mainViewModel.isAllocationInitialized()) Utils.getStorage(mainViewModel.allocation[0].stats.used_size) else "0",
-            if (mainViewModel.isAllocationInitialized()) Utils.getStorage(mainViewModel.allocation[0].size) else "0"
-        )*/
 
         val openFolderForDownloads =
             registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -275,13 +206,11 @@ class VultFragment : Fragment() {
             photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
         }
         binding.cvUploadDocument.setOnClickListener {
-            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
             }
             documentPicker.launch(intent)
-//            getContent.launch("*/*")
-//            documentPicker.launch(intent)
         }
         binding.swipeRefreshLayout.setOnRefreshListener {
             CoroutineScope(Dispatchers.IO).launch {
@@ -298,7 +227,6 @@ class VultFragment : Fragment() {
                     Utils(requireContext()).config,
                     Utils(requireContext()).readWalletFromFileJSON()
                 )
-//            Log.i(TAG_VULT, "Blobbers list : ${vultViewModel.storageSDK.blobbersList}")
 
             if (vultViewModel.getAllocation() == null) {
                 vultViewModel.createAllocationWithBlobber(
@@ -317,20 +245,79 @@ class VultFragment : Fragment() {
                 }
 
             } else {
-                vultViewModel.allocationId = vultViewModel.getAllocation()!!.id
-//                binding.allocationProgressView.progress =
-//                    ((vultViewModel.getAllocation()!!.stats.used_size / mainViewModel.allocation[0].size) * 100).toInt()
-//                binding.tvAllocationDate.text =
-//                    Utils.getDateTime(mainViewModel.allocation[0].timeUnit)
+                vultViewModel.getAllocation().let { allocation ->
+                    if (allocation?.id == null) {
+                        throw Exception("Allocation id is null")
+                    } else {
+                        val statsModel = vultViewModel.getStats(allocation.stats)
+                        requireActivity().runOnUiThread {
+                            binding.allocationProgressView.progress =
+                                ((statsModel.used_size / allocation.size) * 100).toInt()
+                            binding.tvAllocationDate.text =
+                                allocation.expiration.getConvertedDateTime()
+                        }
+                    }
+                }
             }
-//            CoroutineScope(Dispatchers.Main).launch {
             vultViewModel.getAllocation()
             vultViewModel.listFiles("/")
             isRefresh(false)
-//            }
         }
 
         return binding.root
+    }
+
+    private fun makeFileCopyInCacheDir(contentUri: Uri): String? {
+        try {
+            val filePathColumn = arrayOf(
+                //Base File
+                MediaStore.Files.FileColumns._ID,
+                MediaStore.Files.FileColumns.TITLE,
+                MediaStore.Files.FileColumns.DATA,
+                MediaStore.Files.FileColumns.SIZE,
+                MediaStore.Files.FileColumns.DATE_ADDED,
+                MediaStore.Files.FileColumns.DISPLAY_NAME,
+                //Normal File
+                MediaStore.MediaColumns.DATA,
+                MediaStore.MediaColumns.MIME_TYPE,
+                MediaStore.MediaColumns.DISPLAY_NAME
+            )
+            //val contentUri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", File(mediaUrl))
+            val returnCursor =
+                contentUri.let {
+                    requireContext().contentResolver.query(it,
+                        filePathColumn,
+                        null,
+                        null,
+                        null)
+                }
+            if (returnCursor != null) {
+                returnCursor.moveToFirst()
+                val nameIndex = returnCursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
+                val name = returnCursor.getString(nameIndex)
+                val file = File(requireContext().cacheDir, name)
+                val inputStream = requireContext().contentResolver.openInputStream(contentUri)
+                val outputStream = FileOutputStream(file)
+                var read = 0
+                val maxBufferSize = 1 * 1024 * 1024
+                val bytesAvailable = inputStream!!.available()
+
+                //int bufferSize = 1024;
+                val bufferSize = Math.min(bytesAvailable, maxBufferSize)
+                val buffers = ByteArray(bufferSize)
+                while (inputStream.read(buffers).also { read = it } != -1) {
+                    outputStream.write(buffers, 0, read)
+                }
+                inputStream.close()
+                outputStream.close()
+                Log.e("File Path", "Path " + file.path)
+                Log.e("File Size", "Size " + file.length())
+                return file.absolutePath
+            }
+        } catch (ex: Exception) {
+            Log.e("Exception", ex.message!!)
+        }
+        return contentUri.let { Utils(requireContext()).getRealPathFromURI(it) }
     }
 
     private fun isRefresh(bool: Boolean) {
