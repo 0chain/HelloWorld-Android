@@ -16,6 +16,7 @@ import org.zus.bolt.helloworld.databinding.CreateWalletFragmentBinding
 import org.zus.bolt.helloworld.models.bolt.WalletModel
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
+import org.zus.bolt.helloworld.utils.ZcnSDK
 import zcncore.Zcncore
 import java.io.FileNotFoundException
 
@@ -87,6 +88,7 @@ class CreateWalletFragment : Fragment() {
                         Utils(requireContext()).saveWalletAsFile(walletJson)
                         processWallet(walletJson)
 
+
                     } else {
                         Log.e(TAG_CREATE_WALLET, "Error: $error")
                     }
@@ -100,10 +102,13 @@ class CreateWalletFragment : Fragment() {
     private fun processWallet(walletJson: String) {
         try {
             val walletModel = Gson().fromJson(walletJson, WalletModel::class.java)
+            Log.e(TAG_CREATE_WALLET, walletModel.mMnemonics)
             viewModel.wallet = walletModel
             val wallet: WalletModel = viewModel.wallet!!
             wallet.walletJson = walletJson
             Zcncore.setWalletInfo(walletJson, false)
+            ZcnSDK().faucet("pour","{Pay day}",10.0)
+           // ZcnSDK().readPoolLock(1.0,0.0)
             requireActivity().runOnUiThread {
                 findNavController().navigate(R.id.action_createWalletFragment_to_selectAppFragment)
             }

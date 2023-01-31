@@ -104,7 +104,7 @@ class VultViewModel : ViewModel() {
         dataShards: Long,
         parityShards: Long,
         allocationSize: Long,
-        expirationNanoSeconds: Long,
+        expirationSeconds: Long,
         lockTokens: String,
     ) {
         Log.i(TAG_VULT, "createAllocation: ")
@@ -112,7 +112,7 @@ class VultViewModel : ViewModel() {
         Log.i(TAG_VULT, "createAllocation: dataShards: $dataShards")
         Log.i(TAG_VULT, "createAllocation: parityShards: $parityShards")
         Log.i(TAG_VULT, "createAllocation: allocationSize: $allocationSize")
-        Log.i(TAG_VULT, "createAllocation: expirationNanoSeconds: $expirationNanoSeconds")
+        Log.i(TAG_VULT, "createAllocation: expirationSeconds: $expirationSeconds")
         Log.i(TAG_VULT, "createAllocation: lockTokens: $lockTokens")
 
         try {
@@ -121,7 +121,7 @@ class VultViewModel : ViewModel() {
                 dataShards,
                 parityShards,
                 allocationSize,
-                expirationNanoSeconds,
+                expirationSeconds,
                 lockTokens
             )
             Log.i(TAG_VULT, "createAllocation: successfully created allocation")

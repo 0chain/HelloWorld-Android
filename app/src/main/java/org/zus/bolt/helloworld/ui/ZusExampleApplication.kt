@@ -19,7 +19,6 @@ class ZusExampleApplication : Application() {
         try {
             System.loadLibrary("c++_shared")
             System.loadLibrary("bls384")
-            System.loadLibrary("gojni")
             Log.i(TAG_APP, "successfully initialized native libraries")
         } catch (e: UnsatisfiedLinkError) {
             Log.e(TAG_APP, "failed to initialize native libraries UnstatisfiedLinkError", e)

@@ -229,15 +229,13 @@ class VultFragment : Fragment() {
                 )
 
             if (vultViewModel.getAllocation() == null) {
-                vultViewModel.createAllocationWithBlobber(
+                vultViewModel.createAllocation(
                     allocationName = "test allocation",
                     dataShards = 2,
                     parityShards = 2,
                     allocationSize = 2147483648,
-                    expirationNanoSeconds = Date().time + 30000,
+                    expirationSeconds = Date().time/1000 + 30000,
                     lockTokens = Zcncore.convertToValue(1.0),
-                    "",
-                    "c66bfb5bccef53a2faf9acc66d1399a95da5e184b9a6560843ff9c9242cf292b,2f540a6749ac2c6513b1dd00add083635e81c787548aaf9ea49a74917d15264e,786a760f1377e755750f56a0f81ba6924bd11201e695abd1d9341ebba27d2420,ed8ebde6aefcd323ab38a5f4d4553f7dd0dc86bd2aff96a10faa0d4539883147,e02162da3cd257300a2ff0aaf17e829fc8e9c2e0fd88594ca1b4f516799499d5,06b191c97356720310c78e66006acb4fb78022524a78f6500289100cf3310bff"
                 )
                 requireActivity().runOnUiThread {
                     binding.allocationProgressView.progress = 0
