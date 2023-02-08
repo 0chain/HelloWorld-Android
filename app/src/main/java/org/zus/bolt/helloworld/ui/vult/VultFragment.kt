@@ -2,8 +2,8 @@ package org.zus.bolt.helloworld.ui.vult
 
 import android.app.Activity
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -18,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,14 +28,16 @@ import org.zus.bolt.helloworld.databinding.VultFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
 import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedDateTime
+import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedSize
 import zcncore.Zcncore
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
 
+
 const val TAG_VULT = "VultFragment"
 
-class VultFragment : Fragment() {
+class VultFragment : Fragment(), FileClickListener {
     private lateinit var binding: VultFragmentBinding
     private lateinit var vultViewModel: VultViewModel
     private lateinit var mainViewModel: MainViewModel
@@ -49,6 +52,9 @@ class VultFragment : Fragment() {
         vultViewModel = ViewModelProvider(requireActivity())[VultViewModel::class.java]
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
+        downloadPath =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+
         val documentPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -60,6 +66,7 @@ class VultFragment : Fragment() {
                         Log.i(TAG_VULT, "Uri path: ${uri.path}")
                         Log.i(TAG_VULT, "File name: ${Utils(requireContext()).getFileName(uri)}")
                         val filePath = makeFileCopyInCacheDir(uri)
+                        isRefresh(true)
                         CoroutineScope(Dispatchers.IO).launch {
                             vultViewModel.uploadFile(
                                 requireContext().filesDir.absolutePath,
@@ -68,6 +75,7 @@ class VultFragment : Fragment() {
                                 ""
                             )
                         }
+                        isRefresh(false)
                     }
                 }
             }
@@ -87,6 +95,11 @@ class VultFragment : Fragment() {
                         MediaStore.Images.Media.SIZE,
                         MediaStore.Images.Media.MIME_TYPE,
                     )
+
+                    //Requesting permission for persistable read
+
+                    requireContext().contentResolver.takePersistableUriPermission(uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
                     requireContext().contentResolver.query(uri, projection, null, null, null)
                         .use { cursor ->
@@ -119,14 +132,15 @@ class VultFragment : Fragment() {
 
 
         val openFolderForDownloads =
-            registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
                 if (uri != null) {
                     Log.i(TAG_VULT, "file path: uri: ${uri.path}")
                     requireContext().contentResolver.takePersistableUriPermission(
                         uri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     )
-                    val projections = arrayOf(
+
+                    /*val projections = arrayOf(
                         MediaStore.Files.FileColumns.DATA,
                         MediaStore.Files.FileColumns.DISPLAY_NAME,
                         MediaStore.Files.FileColumns.SIZE,
@@ -146,51 +160,17 @@ class VultFragment : Fragment() {
                                 downloadPath = path
                             }
                         }
-                    }
+                    }*/
                 }
             }
-        val filesAdapter = FilesAdapter(mutableListOf(), object : FileClickListener {
-            override fun onFileClick(filePosition: Int) {
-                runBlocking {
-                    downloadPath =
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
-                    val downloadProgressBar = binding.rvAllFiles.getChildAt(filePosition)
-                        .findViewById<ProgressBar>(R.id.uploadsProgressBar)
-                    downloadProgressBar.visibility = View.VISIBLE
-                    Log.i(
-                        TAG_VULT,
-                        "File clicked: ${vultViewModel.files.value!![filePosition].name}"
-                    )
-                    //Create new folder in external directory.
-                    CoroutineScope(Dispatchers.IO).launch {
-                        vultViewModel.downloadFile(
-                            vultViewModel.files.value!![filePosition].name,
-                            downloadPath,
-                        )
-                        downloadProgressBar.visibility = View.GONE
-                        val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
-                            setDataAndType(
-                                Utils(requireContext()).getUriForFile(
-                                    File(
-                                        downloadPath,
-                                        vultViewModel.files.value!![filePosition].name
-                                    )
-                                ),
-                                vultViewModel.files.value!![filePosition].mimetype
-                            )
-                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                        }
-                        try {
-                            startActivity(intentOpenDownloadedFile)
-                        } catch (e: Exception) {
-                            Log.e(TAG_VULT, "Error: ${e.message}")
-                        }
-                    }
-                }
-            }
-        })
+
+        val filesAdapter = FilesAdapter(mutableListOf(), this)
         binding.rvAllFiles.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAllFiles.adapter = filesAdapter
+
+        /*if (downloadPath.isBlank()) {
+            openFolderForDownloads.launch(Uri.EMPTY)
+        }*/
 
         vultViewModel.files.observe(viewLifecycleOwner) { files ->
             if (files != null)
@@ -199,8 +179,6 @@ class VultFragment : Fragment() {
                 filesAdapter.files = mutableListOf()
             filesAdapter.notifyDataSetChanged()
         }
-
-
 
         binding.cvUploadImage.setOnClickListener {
             photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -234,12 +212,13 @@ class VultFragment : Fragment() {
                     dataShards = 2,
                     parityShards = 2,
                     allocationSize = 2147483648,
-                    expirationSeconds = Date().time/1000 + 30000,
+                    expirationSeconds = Date().time / 1000 + 30000,
                     lockTokens = Zcncore.convertToValue(1.0),
                 )
                 requireActivity().runOnUiThread {
                     binding.allocationProgressView.progress = 0
                     binding.tvAllocationDate.text = getString(R.string.no_allocation)
+                    binding.tvStorageUsed.text = getString(R.string.no_allocation)
                 }
 
             } else {
@@ -253,6 +232,11 @@ class VultFragment : Fragment() {
                                 ((statsModel.used_size / allocation.size) * 100).toInt()
                             binding.tvAllocationDate.text =
                                 allocation.expiration.getConvertedDateTime()
+                            binding.tvStorageUsed.text = getString(
+                                R.string.storage_used,
+                                statsModel.used_size.getConvertedSize(),
+                                allocation.size.getConvertedSize()
+                            )
                         }
                     }
                 }
@@ -321,6 +305,72 @@ class VultFragment : Fragment() {
     private fun isRefresh(bool: Boolean) {
         requireActivity().runOnUiThread {
             binding.swipeRefreshLayout.isRefreshing = bool
+        }
+    }
+
+    override fun onDownloadFileClick(filePosition: Int) {
+        runBlocking {
+            val downloadProgressBar = binding.rvAllFiles.getChildAt(filePosition)
+                .findViewById<ProgressBar>(R.id.uploadsProgressBar)
+            downloadProgressBar.visibility = View.VISIBLE
+            Log.i(
+                TAG_VULT,
+                "File clicked: ${vultViewModel.files.value!![filePosition].name}"
+            )
+            //Create new folder in external directory.
+            CoroutineScope(Dispatchers.IO).launch {
+                vultViewModel.downloadFile(
+                    vultViewModel.files.value!![filePosition].name,
+                    downloadPath,
+                )
+                CoroutineScope(Dispatchers.Main).launch {
+                    downloadProgressBar.visibility = View.GONE
+                    val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(
+                            Utils(requireContext()).getUriForFile(
+                                File(
+                                    downloadPath,
+                                    vultViewModel.files.value!![filePosition].name
+                                )
+                            ),
+                            vultViewModel.files.value!![filePosition].mimetype
+                        )
+                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+                    }
+                    try {
+                        startActivity(intentOpenDownloadedFile)
+                    } catch (e: Exception) {
+                        Log.e(TAG_VULT, "Error: ${e.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onFileClick(filePosition: Int) {
+        val file = File(
+            downloadPath,
+            vultViewModel.files.value!![filePosition].name
+        )
+        Log.i(TAG_VULT, "File clicked: ${file.absolutePath}")
+        MediaScannerConnection.scanFile(requireContext(), arrayOf(file.absolutePath), null
+        ) { _, uri ->
+            if (uri == null) {
+                Snackbar.make(binding.root,
+                    "No file found Please Download first",
+                    Snackbar.LENGTH_SHORT).show()
+            } else {
+                Log.i("onScanCompleted", uri.path ?: "No file found")
+                val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, vultViewModel.files.value!![filePosition].mimetype)
+                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+                }
+                try {
+                    startActivity(intentOpenDownloadedFile)
+                } catch (e: Exception) {
+                    Log.e(TAG_VULT, "Error: ${e.message}")
+                }
+            }
         }
     }
 }

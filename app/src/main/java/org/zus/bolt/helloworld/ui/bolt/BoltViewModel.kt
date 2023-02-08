@@ -17,26 +17,6 @@ class BoltViewModel : ViewModel() {
     val transactionsLiveData: MutableLiveData<List<TransactionModel>> = MutableLiveData()
     var balanceLiveData = MutableLiveData<String>()
 
-    companion object {
-        fun initZcncore() {
-            /* initialize the sdk the with chain config. stored in config.json */
-            Zcncore.init(
-                """
-                {
-                    "chain_id": "0afc093ffb509f059c55478bc1a60351cef7b4e9c008a53a6cc8241ca8617dfe",
-                    "signature_scheme": "bls0chain",
-                    "block_worker": "https://demo.0chain.net/dns",
-                    "min_submit": 50,
-                    "min_confirmation": 50,
-                    "confirmation_chain_length": 3,
-                    "num_keys": 1,
-                    "eth_node": "https://ropsten.infura.io/v3/f0a254d8d18b4749bd8540da63b3292b"
-                }
-            """.trimIndent()
-            )
-        }
-    }
-
     private val getInfoCallback = GetInfoCallback { p0, p1, p2, p3 ->
         Log.i(TAG_BOLT, "onInfoAvailable: ")
         Log.i(TAG_BOLT, "onInfoAvailable: p0 $p0")

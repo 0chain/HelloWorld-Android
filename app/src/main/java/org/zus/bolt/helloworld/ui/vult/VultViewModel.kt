@@ -135,7 +135,7 @@ class VultViewModel : ViewModel() {
         dataShards: Long,
         parityShards: Long,
         allocationSize: Long,
-        expirationNanoSeconds: Long,
+        expirationSeconds: Long,
         lockTokens: String,
         blobbersUrls: String,
         blobberIds: String,
@@ -147,7 +147,7 @@ class VultViewModel : ViewModel() {
         Log.i(TAG_VULT, "createAllocationWithBlobber: allocationSize: $allocationSize")
         Log.i(
             TAG_VULT,
-            "createAllocationWithBlobber: expirationNanoSeconds: $expirationNanoSeconds"
+            "createAllocationWithBlobber: expirationSeconds: $expirationSeconds"
         )
         Log.i(TAG_VULT, "createAllocationWithBlobber: lockTokens: $lockTokens")
         Log.i(TAG_VULT, "createAllocationWithBlobber: blobbers: $blobbersUrls")
@@ -159,7 +159,7 @@ class VultViewModel : ViewModel() {
                 dataShards,
                 parityShards,
                 allocationSize,
-                expirationNanoSeconds,
+                expirationSeconds,
                 lockTokens,
                 blobbersUrls,
                 blobberIds
@@ -185,6 +185,25 @@ class VultViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "getAllocation Exception: ", e)
                 null
+            }
+        }
+    }
+
+    suspend fun getAllocationModel(): AllocationModel? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val allocations: AllocationModel?
+                if (::allocation.isInitialized) {
+                    allocations = allocation
+                } else {
+                    Log.i(TAG_VULT, "getAllocation: allocations json: ${storageSDK.allocations}")
+                    allocations =
+                        Gson().fromJson(storageSDK.allocations, AllocationModel::class.java)
+                }
+                return@withContext allocations
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "getAllocation Exception: ", e)
+                return@withContext null
             }
         }
     }
@@ -284,18 +303,4 @@ class VultViewModel : ViewModel() {
             return BlobberNodeModel()
         }
     }
-/* fun shareFile(
-     remotePath: String,
-     fileName: String,
-     shareDuration: Long
- ) {
-     storageSDK.getAllocation(storageSDK.allocations.split(' ')[0])
-         .getShareAuthToken()
-     file name =
-     fileName,
-     share duration =
-     shareDuration,
-     statusCallbackMocked
-     )
- }*/
 }

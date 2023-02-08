@@ -18,6 +18,7 @@ import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.BoltFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
@@ -27,8 +28,7 @@ public const val TAG_BOLT: String = "BoltFragment"
 
 class BoltFragment : Fragment() {
 
-    private var _binding: BoltFragmentBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var binding: BoltFragmentBinding
     private lateinit var mainViewModel: MainViewModel
     private lateinit var boltViewModel: BoltViewModel
 
@@ -37,9 +37,10 @@ class BoltFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
 
-        _binding = BoltFragmentBinding.inflate(inflater, container, false)
+        binding = BoltFragmentBinding.inflate(inflater, container, false)
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         boltViewModel = ViewModelProvider(this)[BoltViewModel::class.java]
+
         return binding.root
 
     }
@@ -49,16 +50,15 @@ class BoltFragment : Fragment() {
 
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
-        updateBalance()
+
+        runBlocking {
+            updateBalance()
+        }
 
 /* Setting the adapters. */
         val transactionsAdapter = TransactionsAdapter(requireContext(), listOf())
         binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTransactions.adapter = transactionsAdapter
-
-        CoroutineScope(Dispatchers.IO).launch {
-            boltViewModel.getBlobbers()
-        }
 
         /*Timer().scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
@@ -160,15 +160,19 @@ class BoltFragment : Fragment() {
                 }
             builder.create().show()
         }
-        updateTransactions()
-        binding.swipeRefresh.setOnRefreshListener {
+        runBlocking {
             updateTransactions()
-            updateBalance()
+        }
+        binding.swipeRefresh.setOnRefreshListener {
+            runBlocking {
+                updateTransactions()
+                updateBalance()
+            }
         }
     }
 
     /* Get transactions. */
-    private fun updateTransactions() {
+    private suspend fun updateTransactions() {
         CoroutineScope(Dispatchers.IO).launch {
             isRefreshing(true)
             boltViewModel.getTransactions(
@@ -182,7 +186,7 @@ class BoltFragment : Fragment() {
         }
     }
 
-    private fun updateBalance() {
+    private suspend fun updateBalance() {
         CoroutineScope(Dispatchers.IO).launch {
             isRefreshing(true)
             boltViewModel.getWalletBalance()
@@ -190,15 +194,10 @@ class BoltFragment : Fragment() {
         }
     }
 
-    private fun isRefreshing(isTrue: Boolean) {
-//        requireActivity().runOnUiThread {
-//            binding.swipeRefresh.isRefreshing = isTrue
-//        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun isRefreshing(bool: Boolean) {
+        requireActivity().runOnUiThread {
+            binding.swipeRefresh.isRefreshing = bool
+        }
     }
 }
 
