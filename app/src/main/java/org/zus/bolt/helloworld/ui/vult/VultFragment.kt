@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -81,7 +82,7 @@ class VultFragment : Fragment(), FileClickListener {
             }
 
         val photoPicker =
-            registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            registerForActivityResult(PickVisualMedia()) { uri ->
                 if (uri != null) {
                     Log.i(TAG_VULT, "file path: uri: ${uri.path}")
                     val fileName = Utils(requireContext()).getFileName(uri)
@@ -181,8 +182,9 @@ class VultFragment : Fragment(), FileClickListener {
         }
 
         binding.cvUploadImage.setOnClickListener {
-            photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+            photoPicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
         }
+
         binding.cvUploadDocument.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
