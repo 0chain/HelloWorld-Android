@@ -15,10 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBindings
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.BoltFragmentBinding
 import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
@@ -41,31 +38,26 @@ class BoltFragment : Fragment() {
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         boltViewModel = ViewModelProvider(this)[BoltViewModel::class.java]
 
-        return binding.root
-
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
 
-        runBlocking {
-            updateBalance()
+        boltViewModel.isRefreshLiveData.observe(viewLifecycleOwner) { isRefresh ->
+            binding.swipeRefresh.isRefreshing = isRefresh
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val calls = async {
+                updateBalance()
+                updateTransactions()
+            }
+            awaitAll(calls)
         }
 
 /* Setting the adapters. */
         val transactionsAdapter = TransactionsAdapter(requireContext(), listOf())
         binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTransactions.adapter = transactionsAdapter
-
-        /*Timer().scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                updateBalance()
-                updateTransactions()
-            }
-        }, 0, 10000)*/
 
         boltViewModel.transactionsLiveData.observe(viewLifecycleOwner) { transactions ->
             transactionsAdapter.transactions = transactions
@@ -78,7 +70,6 @@ class BoltFragment : Fragment() {
                     R.string.zcn_dollar,
                     Zcncore.convertTokenToUSD(balance.toDouble())
                 )
-                isRefreshing(false)
             } catch (e: java.lang.NumberFormatException) {
                 binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0)
                 Log.e(TAG_BOLT, "updateBalance: error ", e)
@@ -89,17 +80,17 @@ class BoltFragment : Fragment() {
         binding.mFaucet.setOnClickListener {
             /* updating the balance after 3 seconds.*/
             CoroutineScope(Dispatchers.IO).launch {
-                isRefreshing(true)
                 boltViewModel.receiveFaucet()
-                isRefreshing(false)
-                updateBalance()
-                updateTransactions()
+                val calls = async {
+                    updateBalance()
+                    updateTransactions()
+                }
+                awaitAll(calls)
             }
         }
 
         /* Send token to an address. */
         binding.msendToken.setOnClickListener {
-            isRefreshing(true)
             val builder = AlertDialog.Builder(requireContext())
             val dialogView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.send_transaction_dialog, null)
@@ -110,7 +101,6 @@ class BoltFragment : Fragment() {
                         dialogView.findViewById<TextView>(R.id.et_to_client_id).text.toString()
                     val amount = dialogView.findViewById<TextView>(R.id.amount).text.toString()
                     if (amount.isBlank() || amount.toDouble() <= 0.0f) {
-                        isRefreshing(false)
                         val amountTIL = ViewBindings.findChildViewById<TextInputLayout>(
                             dialogView,
                             R.id.amountTextInputLayout
@@ -119,7 +109,6 @@ class BoltFragment : Fragment() {
                     } else {
                         CoroutineScope(Dispatchers.IO).launch {
                             boltViewModel.sendTransaction(address, amount)
-                            isRefreshing(false)
                         }
                     }
                 }
@@ -160,44 +149,32 @@ class BoltFragment : Fragment() {
                 }
             builder.create().show()
         }
-        runBlocking {
-            updateTransactions()
-        }
+
         binding.swipeRefresh.setOnRefreshListener {
-            runBlocking {
-                updateTransactions()
-                updateBalance()
+            CoroutineScope(Dispatchers.IO).launch {
+                val calls = async {
+                    updateTransactions()
+                    updateBalance()
+                }
+                awaitAll(calls)
             }
         }
+        return binding.root
     }
 
     /* Get transactions. */
     private suspend fun updateTransactions() {
-        CoroutineScope(Dispatchers.IO).launch {
-            isRefreshing(true)
-            boltViewModel.getTransactions(
-                fromClientId = mainViewModel.wallet?.mClientId ?: "",
-                toClientId = "",
-                sortOrder = Sort.getSort(SortEnum.DESC),
-                limit = 20,
-                offset = 0
-            )
-            isRefreshing(false)
-        }
+        boltViewModel.getTransactions(
+            fromClientId = mainViewModel.wallet?.mClientId ?: "",
+            toClientId = "",
+            sortOrder = Sort.getSort(SortEnum.DESC),
+            limit = 20,
+            offset = 0
+        )
     }
 
     private suspend fun updateBalance() {
-        CoroutineScope(Dispatchers.IO).launch {
-            isRefreshing(true)
-            boltViewModel.getWalletBalance()
-            isRefreshing(false)
-        }
-    }
-
-    private fun isRefreshing(bool: Boolean) {
-        requireActivity().runOnUiThread {
-            binding.swipeRefresh.isRefreshing = bool
-        }
+        boltViewModel.getWalletBalance()
     }
 }
 

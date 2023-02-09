@@ -215,7 +215,7 @@ class VultViewModel : ViewModel() {
         fileAttr: String?,
     ) {
         withContext(Dispatchers.IO) {
-            Log.i(TAG_VULT, "uploadFile: ")
+            Log.i(TAG_VULT, "uploadFile: workDir: $workDir")
             Log.i(TAG_VULT, "uploadFile: fileName: $fileName")
             Log.i(TAG_VULT, "uploadFile: filePathURI: $filePathURI")
             Log.i(TAG_VULT, "uploadFile: fileAttr: $fileAttr")

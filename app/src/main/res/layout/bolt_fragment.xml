@@ -183,7 +183,7 @@
                             android:layout_width="25dp"
                             android:layout_height="24dp"
                             android:contentDescription="@string/image_place_holder_text"
-                            android:src="@drawable/ic_send" />
+                            android:src="@drawable/ic_faucet" />
 
                         <TextView
                             android:layout_width="wrap_content"

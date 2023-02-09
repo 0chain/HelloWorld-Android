@@ -98,7 +98,6 @@ class CreateWalletFragment : Fragment() {
             Log.e(TAG_CREATE_WALLET, walletModel.mMnemonics)
             wallet.walletJson = walletJson
             Zcncore.setWalletInfo(walletJson, false)
-            ZcnSDK().faucet("pour", "{Pay day}", 10.0)
             // ZcnSDK().readPoolLock(1.0,0.0)
             runBlocking {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -112,7 +111,8 @@ class CreateWalletFragment : Fragment() {
                             Utils(requireContext()).readWalletFromFileJSON()
                         )
 
-                    if (vultViewModel.getAllocation() == null)
+                    if (vultViewModel.getAllocation() == null) {
+                        ZcnSDK().faucet("pour", "{Pay day}", 10.0)
                         vultViewModel.createAllocation(
                             allocationName = "test allocation",
                             dataShards = 2,
@@ -121,6 +121,7 @@ class CreateWalletFragment : Fragment() {
                             expirationSeconds = Date().time / 1000 + 30000,
                             lockTokens = Zcncore.convertToValue(1.0),
                         )
+                    }
                     requireActivity().runOnUiThread {
                         binding.progressView.visibility = View.GONE
                         findNavController().navigate(R.id.action_createWalletFragment_to_selectAppFragment)
