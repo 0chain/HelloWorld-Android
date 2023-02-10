@@ -69,11 +69,12 @@
                     android:indeterminate="false"
                     android:max="100"
                     android:progress="30"
+                    android:layout_marginStart="20dp"
                     android:progressBackgroundTint="@color/color_grey"
                     app:indicatorColor="@color/vult_blue"
                     app:layout_constraintBottom_toBottomOf="@+id/tv_allocation"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/guideline1"
+                    app:layout_constraintStart_toEndOf="@+id/tv_allocation_date"
                     app:layout_constraintTop_toTopOf="@+id/tv_allocation"
                     app:trackThickness="10dp" />
 
@@ -81,12 +82,12 @@
                     android:id="@+id/tv_storage_used"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
                     android:text="@string/storage_used"
                     android:textColor="@color/normal_text_color"
                     android:textSize="10sp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="@+id/guideline1"
+                    app:layout_constraintStart_toStartOf="@+id/allocation_progress_view"
                     app:layout_constraintTop_toBottomOf="@+id/allocation_progress_view" />
 
                 <androidx.constraintlayout.widget.Guideline
@@ -116,7 +117,7 @@
             app:layout_constraintTop_toBottomOf="@+id/materialCardView">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:orientation="vertical"
@@ -125,6 +126,7 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:src="@drawable/ic_upload_image" />
 
                 <TextView
@@ -153,7 +155,6 @@
             app:cardPreventCornerOverlap="true"
             app:cardUseCompatPadding="true"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/cv_allocation_details"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/cv_upload_image"
             app:layout_constraintTop_toBottomOf="@+id/materialCardView">
@@ -166,9 +167,10 @@
                 android:paddingVertical="20dp">
 
                 <ImageView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_upload_image" />
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/ic_upload_document" />
 
                 <TextView
                     style="@style/CardTextView"
@@ -176,45 +178,6 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
                     android:text="@string/upload_document"
-                    android:textColor="@color/normal_text_color" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cv_allocation_details"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="5dp"
-            android:clickable="true"
-            android:elevation="10dp"
-            android:focusable="true"
-            app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-            app:cardCornerRadius="10dp"
-            app:cardPreventCornerOverlap="true"
-            app:cardUseCompatPadding="true"
-            app:layout_constraintEnd_toEndOf="@+id/materialCardView"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/cv_upload_document"
-            app:layout_constraintTop_toBottomOf="@+id/materialCardView">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:orientation="vertical"
-                android:paddingVertical="20dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_upload_image" />
-
-                <TextView
-                    style="@style/CardTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text="@string/allocation_details"
                     android:textColor="@color/normal_text_color" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

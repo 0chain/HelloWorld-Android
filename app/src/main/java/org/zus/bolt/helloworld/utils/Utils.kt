@@ -24,7 +24,7 @@ class Utils(private var applicationContext: Context) {
             val s = this
             return try {
                 val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
-                val netDate = Date(s.toLong())
+                val netDate = Date(s.toLong() * 1000L)
                 sdf.format(netDate)
             } catch (e: Exception) {
                 e.toString()
@@ -35,7 +35,7 @@ class Utils(private var applicationContext: Context) {
             val s = this
             return try {
                 val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
-                val netDate = Date(s)
+                val netDate = Date(s * 1000L)
                 sdf.format(netDate)
             } catch (e: Exception) {
                 e.toString()

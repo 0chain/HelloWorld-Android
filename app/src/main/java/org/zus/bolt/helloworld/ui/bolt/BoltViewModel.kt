@@ -16,28 +16,10 @@ import zcncore.Zcncore
 class BoltViewModel : ViewModel() {
     val transactionsLiveData: MutableLiveData<List<TransactionModel>> = MutableLiveData()
     var balanceLiveData = MutableLiveData<String>()
-
-    companion object {
-        fun initZcncore() {
-            /* initialize the sdk the with chain config. stored in config.json */
-            Zcncore.init(
-                """
-                {
-                    "chain_id": "0afc093ffb509f059c55478bc1a60351cef7b4e9c008a53a6cc8241ca8617dfe",
-                    "signature_scheme": "bls0chain",
-                    "block_worker": "https://demo.0chain.net/dns",
-                    "min_submit": 50,
-                    "min_confirmation": 50,
-                    "confirmation_chain_length": 3,
-                    "num_keys": 1,
-                    "eth_node": "https://ropsten.infura.io/v3/f0a254d8d18b4749bd8540da63b3292b"
-                }
-            """.trimIndent()
-            )
-        }
-    }
+    val isRefreshLiveData = MutableLiveData<Boolean>()
 
     private val getInfoCallback = GetInfoCallback { p0, p1, p2, p3 ->
+        isRefreshLiveData.postValue(false)
         Log.i(TAG_BOLT, "onInfoAvailable: ")
         Log.i(TAG_BOLT, "onInfoAvailable: p0 $p0")
         Log.i(TAG_BOLT, "onInfoAvailable: p1 $p1")
@@ -47,6 +29,7 @@ class BoltViewModel : ViewModel() {
 
     suspend fun sendTransaction(to: String, amount: String) {
         withContext(Dispatchers.IO) {
+            isRefreshLiveData.postValue(true)
             Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
                 .send(
                     /* receiver address = */ to,
@@ -58,6 +41,7 @@ class BoltViewModel : ViewModel() {
 
     suspend fun receiveFaucet() {
         withContext(Dispatchers.IO) {
+            isRefreshLiveData.postValue(true)
             Zcncore.newTransaction(transactionCallback, /* gas = */ "0",/* nonce = */getNonce())
                 .executeSmartContract(
                     /* faucet address = */ "6dba10422e368813802877a85039d3985d96760ed844092319743fb3a76712d3",
@@ -76,6 +60,7 @@ class BoltViewModel : ViewModel() {
 
         override fun onTransactionComplete(transaction: Transaction?, status: Long) {
             // confirmation of successful transaction.
+            isRefreshLiveData.postValue(false)
             if (status == 0L) {
                 // Successful status of the transaction.
             }
@@ -83,13 +68,16 @@ class BoltViewModel : ViewModel() {
 
         override fun onVerifyComplete(p0: Transaction?, p1: Long) {
             // confirmation of successful verification of the transaction.
+            isRefreshLiveData.postValue(false)
         }
     }
 
     suspend fun getWalletBalance() {
         return withContext(Dispatchers.IO) {
             try {
+                isRefreshLiveData.postValue(true)
                 Zcncore.getBalance { status, value, info ->
+                    isRefreshLiveData.postValue(false)
                     if (status == 0L) {
                         Gson().fromJson(info, BalanceModel::class.java).let { balanceModel ->
                             balanceLiveData.postValue(
@@ -102,7 +90,9 @@ class BoltViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
+                isRefreshLiveData.postValue(false)
                 print("Error: $e")
+//                Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
                 balanceLiveData.postValue("")
             }
         }
@@ -116,6 +106,7 @@ class BoltViewModel : ViewModel() {
         offset: Long,
     ) {
         withContext(Dispatchers.IO) {
+            isRefreshLiveData.postValue(true)
             Zcncore.getTransactions(
                 toClientId,
                 fromClientId,
@@ -124,6 +115,7 @@ class BoltViewModel : ViewModel() {
                 limit,
                 offset
             ) { _, _, json, error ->
+                isRefreshLiveData.postValue(false)
                 if (error.isEmpty() && !json.isNullOrBlank() && json.isNotEmpty()) {
                     val transactions = Gson().fromJson(json, Array<TransactionModel>::class.java)
                     this@BoltViewModel.transactionsLiveData.postValue(transactions.toList())
@@ -136,6 +128,7 @@ class BoltViewModel : ViewModel() {
 
     suspend fun getBlobbers() {
         withContext(Dispatchers.IO) {
+            isRefreshLiveData.postValue(true)
             Zcncore.getBlobbers(getInfoCallback, /* limit */ 20, /* offset */ 0, true)
         }
     }

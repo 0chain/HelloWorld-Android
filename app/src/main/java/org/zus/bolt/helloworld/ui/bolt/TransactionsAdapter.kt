@@ -16,10 +16,14 @@ class TransactionsAdapter(
 ) : RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val textView: TextView
+        val tvNumber: TextView
+        val tvHash: TextView
+        val tvDateTime: TextView
 
         init {
-            textView = view.findViewById(R.id.tv_transactions_rv_item)
+            tvNumber = view.findViewById(R.id.tv_number)
+            tvHash = view.findViewById(R.id.tv_hash)
+            tvDateTime = view.findViewById(R.id.tv_date_time)
         }
     }
 
@@ -30,16 +34,9 @@ class TransactionsAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.textView.text = context.getString(
-            /* resId = */
-            R.string.transaction_list_item,
-            /* position = */
-            position + 1,
-            /* hash = */
-            transactions[position].hash.substring(0, 6),
-            /* date time= */
-            transactions[position].creation_date.getConvertedDateTime()
-        )
+        holder.tvNumber.text = (position + 1).toString()
+        holder.tvHash.text = transactions[position].hash.substring(0, 20)
+        holder.tvDateTime.text = transactions[position].creation_date.getConvertedDateTime()
     }
 
     override fun getItemCount() = transactions.size
