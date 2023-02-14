@@ -138,11 +138,11 @@ class BoltFragment : Fragment() {
                 .setCancelable(true)
                 .setNeutralButton("Copy Client ID") { _, _ ->
                     //copy to clipboard
-                    var clipboard =
+                    val clipboard =
                         requireActivity().getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(
                         android.content.ClipData.newPlainText(
-                            "text",
+                            "client id",
                             mainViewModel.wallet?.mClientId
                         )
                     )

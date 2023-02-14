@@ -2,7 +2,6 @@ package org.zus.bolt.helloworld.ui
 
 import android.app.Application
 import android.util.Log
-import androidx.appcompat.app.AppCompatDelegate
 import org.zus.bolt.helloworld.utils.Utils
 import sdk.Sdk
 import zcncore.Zcncore
@@ -29,7 +28,6 @@ class ZusExampleApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
         try {
             // Initialize Zcncore and Sdk with chain config  at the start of the Application.
             Zcncore.init(utils.config)

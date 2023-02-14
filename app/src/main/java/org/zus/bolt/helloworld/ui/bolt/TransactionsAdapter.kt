@@ -16,12 +16,10 @@ class TransactionsAdapter(
 ) : RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvNumber: TextView
         val tvHash: TextView
         val tvDateTime: TextView
 
         init {
-            tvNumber = view.findViewById(R.id.tv_number)
             tvHash = view.findViewById(R.id.tv_hash)
             tvDateTime = view.findViewById(R.id.tv_date_time)
         }
@@ -34,8 +32,15 @@ class TransactionsAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.tvNumber.text = (position + 1).toString()
-        holder.tvHash.text = transactions[position].hash.substring(0, 20)
+        holder.tvHash.text = buildString {
+            append(position + 1)
+            append(". ")
+            append(transactions[position].hash.substring(0,
+                6))
+            append("...")
+            append(transactions[position].hash.substring(transactions[position].hash.length - 6,
+                transactions[position].hash.length))
+        }
         holder.tvDateTime.text = transactions[position].creation_date.getConvertedDateTime()
     }
 

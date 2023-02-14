@@ -19,4 +19,5 @@
     <color name="file_dialog_background">@color/color_bg_transaction</color>
     <color name="website_zus_color_variant_card_view">@color/cardview_light_background</color>
     <color name="status_bar_color">@color/vult_blue</color>
+    <color name="color_url">#4B79DB</color>
 </resources>

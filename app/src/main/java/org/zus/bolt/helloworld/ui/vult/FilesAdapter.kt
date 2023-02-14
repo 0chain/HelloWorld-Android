@@ -39,7 +39,6 @@ class FilesAdapter(
         else
             holder.ivIcon.setImageResource(R.drawable.ic_upload_document)
         holder.downloadButton.setOnClickListener {
-            holder.downloadProgress.visibility = View.VISIBLE
             onFileClickListener.onDownloadFileClick(position)
         }
         holder.itemView.setOnClickListener {
