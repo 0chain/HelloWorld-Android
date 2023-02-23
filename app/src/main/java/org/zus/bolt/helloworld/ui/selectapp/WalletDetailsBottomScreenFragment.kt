@@ -10,13 +10,13 @@ import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBind
 import org.zus.bolt.helloworld.models.bolt.WalletModel
 
 class WalletDetailsBottomScreenFragment(
-    private val walletModel: WalletModel
+    private val walletModel: WalletModel,
 ) : BottomSheetDialogFragment() {
     private lateinit var binding: GenericBottomSheetDetailsFragmentBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = GenericBottomSheetDetailsFragmentBinding.inflate(inflater, container, false)
 
@@ -29,6 +29,7 @@ class WalletDetailsBottomScreenFragment(
                 add(Pair("Public Key:", walletModel.mKeys[0].mPublicKey))
                 add(Pair("Private Key:", walletModel.mKeys[0].mPrivateKey))
                 add(Pair("Mnemonic:", walletModel.mMnemonics))
+                add(Pair("Wallet JSON:", walletModel.walletJson))
             }
 
 

@@ -92,7 +92,7 @@ class BoltViewModel : ViewModel() {
             } catch (e: Exception) {
                 isRefreshLiveData.postValue(false)
                 print("Error: $e")
-//                Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
+                receiveFaucet()
                 balanceLiveData.postValue("")
             }
         }

@@ -2,6 +2,7 @@ package org.zus.bolt.helloworld.ui.mainactivity
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -14,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.MainActivityBinding
 import org.zus.bolt.helloworld.utils.Utils
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private val READ_AND_WRITE_STORAGE_PERMISSION: Int = 1
@@ -36,6 +38,15 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        navController.addOnDestinationChangedListener() { _, destination, _ ->
+            if (destination.id == R.id.selectAppFragment) {
+                binding.toolbar.visibility = View.GONE
+            } else {
+                binding.toolbar.visibility = View.VISIBLE
+            }
+        }
+
         /* Setting wallet json. */
         runBlocking {
             viewModel.wallet = utils.getWalletModel()
@@ -54,9 +65,34 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    override fun onDestroy() {
+        /* Deletes cache files after app is closed. */
+        val fileDir: File? = applicationContext.cacheDir
+        deleteDir(fileDir)
+
+        super.onDestroy()
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
+    }
+
+    private fun deleteDir(dir: File?): Boolean {
+        return if (dir != null && dir.isDirectory) {
+            val children: Array<String> = dir.list() as Array<String>
+            for (i in children.indices) {
+                val success = deleteDir(File(dir, children[i]))
+                if (!success) {
+                    return false
+                }
+            }
+            dir.delete()
+        } else if (dir != null && dir.isFile) {
+            dir.delete()
+        } else {
+            false
+        }
     }
 }

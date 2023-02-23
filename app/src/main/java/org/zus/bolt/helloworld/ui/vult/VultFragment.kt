@@ -12,7 +12,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
@@ -160,11 +159,7 @@ class VultFragment : Fragment(), FileClickListener {
                     expirationSeconds = Date().time / 1000 + 30000,
                     lockTokens = Zcncore.convertToValue(1.0),
                 )
-                requireActivity().runOnUiThread {
-                    binding.allocationProgressView.progress = 0
-                    binding.tvAllocationDate.text = getString(R.string.no_allocation)
-                    binding.tvStorageUsed.text = getString(R.string.no_allocation)
-                }
+                updateTotalSizeProgress()
 
             } else {
                 vultViewModel.getAllocation().let { allocation ->
@@ -192,6 +187,14 @@ class VultFragment : Fragment(), FileClickListener {
         }
 
         return binding.root
+    }
+
+    private fun updateTotalSizeProgress() {
+        requireActivity().runOnUiThread {
+            binding.allocationProgressView.progress = 0
+            binding.tvAllocationDate.text = getString(R.string.no_allocation)
+            binding.tvStorageUsed.text = getString(R.string.no_allocation)
+        }
     }
 
     private fun makeFileCopyInCacheDir(contentUri: Uri): String? {
@@ -255,9 +258,7 @@ class VultFragment : Fragment(), FileClickListener {
 
     override fun onDownloadFileClick(filePosition: Int) {
         runBlocking {
-            val downloadProgressBar = binding.rvAllFiles.getChildAt(filePosition)
-                .findViewById<ProgressBar>(R.id.uploadsProgressBar)
-            downloadProgressBar.visibility = View.VISIBLE
+            isRefresh(true)
             Log.i(
                 TAG_VULT,
                 "File clicked: ${vultViewModel.files.value!![filePosition].name}"
@@ -269,7 +270,7 @@ class VultFragment : Fragment(), FileClickListener {
                     downloadPath,
                 )
                 CoroutineScope(Dispatchers.Main).launch {
-                    downloadProgressBar.visibility = View.GONE
+                    isRefresh(false)
                     val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
                         setDataAndType(
                             Utils(requireContext()).getUriForFile(

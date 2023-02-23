@@ -9,10 +9,13 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
+import android.webkit.URLUtil
 import androidx.core.database.getStringOrNull
 import com.google.gson.Gson
+import org.json.JSONException
 import org.json.JSONObject
 import org.zus.bolt.helloworld.models.bolt.WalletModel
+import org.zus.bolt.helloworld.ui.TAG_CREATE_WALLET
 import java.io.File
 import java.io.FileNotFoundException
 import java.text.SimpleDateFormat
@@ -23,7 +26,7 @@ class Utils(private var applicationContext: Context) {
         fun Int.getConvertedDateTime(): String {
             val s = this
             return try {
-                val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
+                val sdf = SimpleDateFormat("dd/MM 'at' HH:mm:ss", Locale.ENGLISH)
                 val netDate = Date(s.toLong() * 1000L)
                 sdf.format(netDate)
             } catch (e: Exception) {
@@ -34,7 +37,7 @@ class Utils(private var applicationContext: Context) {
         fun Long.getConvertedDateTime(): String {
             val s = this
             return try {
-                val sdf = SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss a", Locale.ENGLISH)
+                val sdf = SimpleDateFormat("dd/MM 'at' HH:mm:ss", Locale.ENGLISH)
                 val netDate = Date(s * 1000L)
                 sdf.format(netDate)
             } catch (e: Exception) {
@@ -81,6 +84,29 @@ class Utils(private var applicationContext: Context) {
                 else -> {
                     "$size B"
                 }
+            }
+        }
+
+        fun String.getShortFormattedString(): String {
+            val string = this
+            return if (string.length > 20) {
+                "${string.substring(0, 20)}..."
+            } else {
+                string
+            }
+        }
+
+        fun String.isValidUrl(): Boolean = URLUtil.isValidUrl(this)
+
+        fun String.isValidJson(): Boolean {
+            val string = this
+            return try {
+                JSONObject(string)
+                true
+            } catch (e: JSONException) {
+                Log.e(TAG_CREATE_WALLET, "isValidJson: Exception", e)
+                Log.e(TAG_CREATE_WALLET, "json string $this")
+                false
             }
         }
     }
@@ -271,7 +297,7 @@ class Utils(private var applicationContext: Context) {
         return null
     }
 
-    fun getDataColumn(
+    private fun getDataColumn(
         uri: Uri?, selection: String?,
         selectionArgs: Array<String>?,
     ): String? {
@@ -297,7 +323,7 @@ class Utils(private var applicationContext: Context) {
     }
 
 
-    fun getFilePath(uri: Uri?): String? {
+    private fun getFilePath(uri: Uri?): String? {
         var cursor: Cursor? = null
         val projection = arrayOf(
             MediaStore.MediaColumns.DATA
@@ -321,7 +347,7 @@ class Utils(private var applicationContext: Context) {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is ExternalStorageProvider.
      */
-    fun isExternalStorageDocument(uri: Uri): Boolean {
+    private fun isExternalStorageDocument(uri: Uri): Boolean {
         return "com.android.externalstorage.documents" == uri.authority
     }
 
@@ -329,7 +355,7 @@ class Utils(private var applicationContext: Context) {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is DownloadsProvider.
      */
-    fun isDownloadsDocument(uri: Uri): Boolean {
+    private fun isDownloadsDocument(uri: Uri): Boolean {
         return "com.android.providers.downloads.documents" == uri.authority
     }
 
@@ -337,7 +363,7 @@ class Utils(private var applicationContext: Context) {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is MediaProvider.
      */
-    fun isMediaDocument(uri: Uri): Boolean {
+    private fun isMediaDocument(uri: Uri): Boolean {
         return "com.android.providers.media.documents" == uri.authority
     }
 
@@ -345,7 +371,7 @@ class Utils(private var applicationContext: Context) {
      * @param uri The Uri to check.
      * @return Whether the Uri authority is Google Photos.
      */
-    fun isGooglePhotosUri(uri: Uri): Boolean {
+    private fun isGooglePhotosUri(uri: Uri): Boolean {
         return "com.google.android.apps.photos.content" == uri.authority
     }
 }
