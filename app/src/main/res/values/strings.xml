@@ -38,7 +38,7 @@
     <string name="_9e330d869f8e195c650a">9e330d869f8e195c650a...fewjif939032u03u9u</string>
     <string name="storage_used">%1$s used of %2$s</string>
     <string name="allocation_details">Allocation\n Details</string>
-    <string name="upload_document">Upload Document</string>
+    <string name="upload_document">Upload File</string>
     <string name="upload_image">Upload Image</string>
     <string name="wallet_json">
         client_id:"0e789ab0840f454e2d145088507d41faf78bc553b64798bd8e350c596b8d83c9",\n

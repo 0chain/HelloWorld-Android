@@ -89,8 +89,8 @@ class Utils(private var applicationContext: Context) {
 
         fun String.getShortFormattedString(): String {
             val string = this
-            return if (string.length > 20) {
-                "${string.substring(0, 20)}..."
+            return if (string.length > 10) {
+                "${string.substring(0, 9)}...${string.substring(string.length - 4, string.length)}"
             } else {
                 string
             }

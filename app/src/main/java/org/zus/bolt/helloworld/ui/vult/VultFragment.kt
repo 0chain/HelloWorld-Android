@@ -29,6 +29,7 @@ import org.zus.bolt.helloworld.ui.mainactivity.MainViewModel
 import org.zus.bolt.helloworld.utils.Utils
 import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedDateTime
 import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedSize
+import zbox.StatusCallbackMocked
 import zcncore.Zcncore
 import java.io.File
 import java.io.FileOutputStream
@@ -109,6 +110,8 @@ class VultFragment : Fragment(), FileClickListener {
                 }
             }
 
+        binding.tvStorageUsed.text =
+            getString(R.string.storage_used, 0.getConvertedSize(), 0.getConvertedSize())
 
         val filesAdapter = FilesAdapter(mutableListOf(), this)
         binding.rvAllFiles.layoutManager = LinearLayoutManager(requireContext())
@@ -265,30 +268,90 @@ class VultFragment : Fragment(), FileClickListener {
             )
             //Create new folder in external directory.
             CoroutineScope(Dispatchers.IO).launch {
-                vultViewModel.downloadFile(
+                vultViewModel.downloadFileWithCallback(
                     vultViewModel.files.value!![filePosition].name,
-                    downloadPath,
-                )
-                CoroutineScope(Dispatchers.Main).launch {
-                    isRefresh(false)
-                    val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(
-                            Utils(requireContext()).getUriForFile(
-                                File(
-                                    downloadPath,
-                                    vultViewModel.files.value!![filePosition].name
-                                )
-                            ),
-                            vultViewModel.files.value!![filePosition].mimetype
-                        )
-                        flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                    }
-                    try {
-                        startActivity(intentOpenDownloadedFile)
-                    } catch (e: Exception) {
-                        Log.e(TAG_VULT, "Error: ${e.message}")
-                    }
-                }
+                    downloadPath, object : StatusCallbackMocked {
+                        override fun commitMetaCompleted(
+                            p0: String?,
+                            p1: String?,
+                            p2: java.lang.Exception?,
+                        ) {
+                            Log.d(TAG_VULT, "commitMetaCompleted: ")
+                            Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
+                            Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
+                            Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
+                        }
+
+                        override fun completed(
+                            p0: String?,
+                            p1: String?,
+                            p2: String?,
+                            p3: String?,
+                            p4: Long,
+                            p5: Long,
+                        ) {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                isRefresh(false)
+                                val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(
+                                        Utils(requireContext()).getUriForFile(
+                                            File(
+                                                downloadPath,
+                                                vultViewModel.files.value!![filePosition].name
+                                            )
+                                        ),
+                                        vultViewModel.files.value!![filePosition].mimetype
+                                    )
+                                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+                                }
+                                try {
+                                    startActivity(intentOpenDownloadedFile)
+                                } catch (e: Exception) {
+                                    Log.e(TAG_VULT, "Error: ${e.message}")
+                                }
+                            }
+                        }
+
+                        override fun error(
+                            p0: String?,
+                            p1: String?,
+                            p2: Long,
+                            p3: java.lang.Exception?,
+                        ) {
+                            Log.d(TAG_VULT, "error: ")
+                            Log.d(TAG_VULT, "error: p0: $p0")
+                            Log.d(TAG_VULT, "error: p1: $p1")
+                            Log.d(TAG_VULT, "error: p2: $p2")
+                            Log.d(TAG_VULT, "error: p3: $p3")
+                        }
+
+                        override fun inProgress(
+                            p0: String?,
+                            p1: String?,
+                            p2: Long,
+                            p3: Long,
+                            p4: ByteArray?,
+                        ) {
+                            Log.d(TAG_VULT, "inProgress: ")
+                            Log.d(TAG_VULT, "inProgress: p0: $p0")
+                            Log.d(TAG_VULT, "inProgress: p1: $p1")
+                            Log.d(TAG_VULT, "inProgress: p2: $p2")
+                            Log.d(TAG_VULT, "inProgress: p3: $p3")
+                            Log.d(TAG_VULT, "inProgress: p4: $p4")
+                        }
+
+                        override fun repairCompleted(p0: Long) {
+                            Log.d(TAG_VULT, "repairCompleted: ")
+                            Log.d(TAG_VULT, "repairCompleted: p0: $p0")
+                        }
+
+                        override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+                            Snackbar.make(binding.root,
+                                "Downloading ${vultViewModel.files.value!![filePosition].name}",
+                                Snackbar.LENGTH_SHORT).show()
+                        }
+                    })
+
             }
         }
     }
@@ -303,8 +366,9 @@ class VultFragment : Fragment(), FileClickListener {
         ) { _, uri ->
             if (uri == null) {
                 Snackbar.make(binding.root,
-                    "No file found Please Download first",
+                    "No file found Please Downloaing the File...",
                     Snackbar.LENGTH_SHORT).show()
+                onDownloadFileClick(filePosition)
             } else {
                 Log.i("onScanCompleted", uri.path ?: "No file found")
                 val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {

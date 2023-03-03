@@ -257,6 +257,29 @@ class VultViewModel : ViewModel() {
         }
     }
 
+    suspend fun downloadFileWithCallback(
+        fileName: String,
+        downloadPath: String,
+        callback: StatusCallbackMocked,
+    ) {
+        withContext(Dispatchers.IO) {
+            Log.i(TAG_VULT, "downloadFile: ")
+            Log.i(TAG_VULT, "downloadFile: fileName: $fileName")
+            Log.i(TAG_VULT, "downloadFile: downloadPath: $downloadPath")
+            try {
+                getAllocation()?.downloadFile(
+                    /* remote path =*/
+                    "/$fileName",
+                    /* file local download path =*/
+                    downloadPath,
+                    callback
+                )
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "downloadFile Exception: ", e)
+            }
+        }
+    }
+
     suspend fun listFiles(remotePath: String) {
         return withContext(Dispatchers.IO) {
             getAllocation()?.let { allocation ->

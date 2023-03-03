@@ -1,6 +1,7 @@
 package org.zus.bolt.helloworld.ui.bolt
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +43,13 @@ class TransactionsAdapter(
                 transactions[position].hash.length))
         }
         holder.tvDateTime.text = transactions[position].creation_date.getConvertedDateTime()
+
+        holder.itemView.setOnClickListener {
+            val url = "https://demo.atlus.cloud/transaction-details/${transactions[position].hash}"
+            val openUrl = Intent(Intent.ACTION_VIEW)
+            openUrl.data = android.net.Uri.parse(url)
+            context.startActivity(openUrl)
+        }
     }
 
     override fun getItemCount() = transactions.size
