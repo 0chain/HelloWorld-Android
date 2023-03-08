@@ -3,11 +3,8 @@ package org.zus.bolt.helloworld.ui.vult
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.zus.bolt.helloworld.models.blobber.BlobberNodeModel
 import org.zus.bolt.helloworld.models.blobber.BlobbersUrlIdModel
@@ -39,67 +36,17 @@ class VultViewModel : ViewModel() {
 
     }
 
-    private val statusCallbackMocked = object : StatusCallbackMocked {
-        override fun commitMetaCompleted(p0: String?, p1: String?, p2: Exception?) {
-            Log.d(TAG_VULT, "commitMetaCompleted: ")
-            Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
-            Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
-            Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
-        }
+    /**
+     *  Create a new allocation
+     *  @param allocationName Name of the allocation
+     *  @param dataShards Number of data shards
+     *  @param parityShards Number of parity shards
+     *  @param allocationSize Size of the allocation in bytes
+     *  @param expirationSeconds Expiration time in seconds (future timestamp for allocation expiration)
+     *  @param lockTokens Lock tokens
+     */
 
-        override fun completed(
-            p0: String?,
-            p1: String?,
-            p2: String?,
-            p3: String?,
-            p4: Long,
-            p5: Long,
-        ) {
-            Log.d(TAG_VULT, "completed: ")
-            Log.d(TAG_VULT, "completed: p0: $p0")
-            Log.d(TAG_VULT, "completed: p1: $p1")
-            Log.d(TAG_VULT, "completed: p2: $p2")
-            Log.d(TAG_VULT, "completed: p3: $p3")
-            Log.d(TAG_VULT, "completed: p4: $p4")
-            Log.d(TAG_VULT, "completed: p5: $p5")
-            CoroutineScope(viewModelScope.coroutineContext).launch {
-                listFiles("/")
-            }
-        }
-
-        override fun error(p0: String?, p1: String?, p2: Long, p3: Exception?) {
-            Log.d(TAG_VULT, "error: ")
-            Log.d(TAG_VULT, "error: p0: $p0")
-            Log.d(TAG_VULT, "error: p1: $p1")
-            Log.d(TAG_VULT, "error: p2: $p2")
-            Log.d(TAG_VULT, "error: p3: $p3")
-        }
-
-        override fun inProgress(p0: String?, p1: String?, p2: Long, p3: Long, p4: ByteArray?) {
-            Log.d(TAG_VULT, "inProgress: ")
-            Log.d(TAG_VULT, "inProgress: p0: $p0")
-            Log.d(TAG_VULT, "inProgress: p1: $p1")
-            Log.d(TAG_VULT, "inProgress: p2: $p2")
-            Log.d(TAG_VULT, "inProgress: p3: $p3")
-            Log.d(TAG_VULT, "inProgress: p4: $p4")
-        }
-
-        override fun repairCompleted(p0: Long) {
-            Log.d(TAG_VULT, "repairCompleted: ")
-            Log.d(TAG_VULT, "repairCompleted: p0: $p0")
-        }
-
-        override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
-            Log.d(TAG_VULT, "started: ")
-            Log.d(TAG_VULT, "started: p0: $p0")
-            Log.d(TAG_VULT, "started: p1: $p1")
-            Log.d(TAG_VULT, "started: p2: $p2")
-            Log.d(TAG_VULT, "started: p3: $p3")
-        }
-
-    }
-
-    fun createAllocation(
+    suspend fun createAllocation(
         allocationName: String,
         dataShards: Long,
         parityShards: Long,
@@ -107,30 +54,42 @@ class VultViewModel : ViewModel() {
         expirationSeconds: Long,
         lockTokens: String,
     ) {
-        Log.i(TAG_VULT, "createAllocation: ")
-        Log.i(TAG_VULT, "createAllocation: allocationName: $allocationName")
-        Log.i(TAG_VULT, "createAllocation: dataShards: $dataShards")
-        Log.i(TAG_VULT, "createAllocation: parityShards: $parityShards")
-        Log.i(TAG_VULT, "createAllocation: allocationSize: $allocationSize")
-        Log.i(TAG_VULT, "createAllocation: expirationSeconds: $expirationSeconds")
-        Log.i(TAG_VULT, "createAllocation: lockTokens: $lockTokens")
+        withContext(Dispatchers.IO) {
+            Log.i(TAG_VULT, "createAllocation: ")
+            Log.i(TAG_VULT, "createAllocation: allocationName: $allocationName")
+            Log.i(TAG_VULT, "createAllocation: dataShards: $dataShards")
+            Log.i(TAG_VULT, "createAllocation: parityShards: $parityShards")
+            Log.i(TAG_VULT, "createAllocation: allocationSize: $allocationSize")
+            Log.i(TAG_VULT, "createAllocation: expirationSeconds: $expirationSeconds")
+            Log.i(TAG_VULT, "createAllocation: lockTokens: $lockTokens")
 
-        try {
-            storageSDK.createAllocation(
-                allocationName,
-                dataShards,
-                parityShards,
-                allocationSize,
-                expirationSeconds,
-                lockTokens
-            )
-            Log.i(TAG_VULT, "createAllocation: successfully created allocation")
-        } catch (e: Exception) {
-            Log.e(TAG_VULT, "createAllocation Exception: ", e)
+            try {
+                storageSDK.createAllocation(
+                    dataShards,
+                    parityShards,
+                    allocationSize,
+                    expirationSeconds,
+                    lockTokens
+                )
+                Log.i(TAG_VULT, "createAllocation: successfully created allocation")
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "createAllocation Exception: ", e)
+            }
         }
     }
 
-    fun createAllocationWithBlobber(
+    /**
+     *  Create a new allocation by specifying your own blobbers.
+     *  @param allocationName Name of the allocation
+     *  @param dataShards Number of data shards
+     *  @param parityShards Number of parity shards
+     *  @param allocationSize Size of the allocation in bytes
+     *  @param expirationSeconds Expiration time in seconds (future timestamp for allocation expiration)
+     *  @param lockTokens Lock tokens
+     *  @param blobbersUrls Blobbers URLs
+     *  @param blobberIds Blobber IDs
+     */
+    suspend fun createAllocationWithBlobber(
         allocationName: String,
         dataShards: Long,
         parityShards: Long,
@@ -140,36 +99,41 @@ class VultViewModel : ViewModel() {
         blobbersUrls: String,
         blobberIds: String,
     ) {
-        Log.i(TAG_VULT, "createAllocationWithBlobber: ")
-        Log.i(TAG_VULT, "createAllocationWithBlobber: allocationName: $allocationName")
-        Log.i(TAG_VULT, "createAllocationWithBlobber: dataShards: $dataShards")
-        Log.i(TAG_VULT, "createAllocationWithBlobber: parityShards: $parityShards")
-        Log.i(TAG_VULT, "createAllocationWithBlobber: allocationSize: $allocationSize")
-        Log.i(
-            TAG_VULT,
-            "createAllocationWithBlobber: expirationSeconds: $expirationSeconds"
-        )
-        Log.i(TAG_VULT, "createAllocationWithBlobber: lockTokens: $lockTokens")
-        Log.i(TAG_VULT, "createAllocationWithBlobber: blobbers: $blobbersUrls")
-        Log.i(TAG_VULT, "createAllocationWithBlobber: blobberIds: $blobberIds")
-
-        try {
-            storageSDK.createAllocationWithBlobbers(
-                allocationName,
-                dataShards,
-                parityShards,
-                allocationSize,
-                expirationSeconds,
-                lockTokens,
-                blobbersUrls,
-                blobberIds
+        withContext(Dispatchers.IO) {
+            Log.i(TAG_VULT, "createAllocationWithBlobber: ")
+            Log.i(TAG_VULT, "createAllocationWithBlobber: allocationName: $allocationName")
+            Log.i(TAG_VULT, "createAllocationWithBlobber: dataShards: $dataShards")
+            Log.i(TAG_VULT, "createAllocationWithBlobber: parityShards: $parityShards")
+            Log.i(TAG_VULT, "createAllocationWithBlobber: allocationSize: $allocationSize")
+            Log.i(
+                TAG_VULT,
+                "createAllocationWithBlobber: expirationSeconds: $expirationSeconds"
             )
-            Log.i(TAG_VULT, "createAllocationWithBlobber: successfully created allocation")
-        } catch (e: Exception) {
-            Log.e(TAG_VULT, "createAllocationWithBlobber Exception: ", e)
+            Log.i(TAG_VULT, "createAllocationWithBlobber: lockTokens: $lockTokens")
+            Log.i(TAG_VULT, "createAllocationWithBlobber: blobbers: $blobbersUrls")
+            Log.i(TAG_VULT, "createAllocationWithBlobber: blobberIds: $blobberIds")
+
+            try {
+                storageSDK.createAllocationWithBlobbers(
+                    allocationName,
+                    dataShards,
+                    parityShards,
+                    allocationSize,
+                    expirationSeconds,
+                    lockTokens,
+                    blobbersUrls,
+                    blobberIds
+                )
+                Log.i(TAG_VULT, "createAllocationWithBlobber: successfully created allocation")
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "createAllocationWithBlobber Exception: ", e)
+            }
         }
     }
 
+    /**
+     *  Gets the current allocation if present for a wallet.
+     */
     suspend fun getAllocation(): Allocation? {
         return withContext(Dispatchers.IO) {
             try {
@@ -189,6 +153,9 @@ class VultViewModel : ViewModel() {
         }
     }
 
+    /**
+     *  Gets the current allocation if present for a wallet.
+     */
     suspend fun getAllocationModel(): AllocationModel? {
         return withContext(Dispatchers.IO) {
             try {
@@ -208,11 +175,20 @@ class VultViewModel : ViewModel() {
         }
     }
 
-    suspend fun uploadFile(
+    /**
+     *  Uploads a file to the current allocation.
+     *  @param workDir Working directory (temporary directory for gosdk to operate default is filsDir of the app)
+     *  @param fileName Name of the file
+     *  @param filePathURI File path URI (file location in the current android filesystem)
+     *  @param fileAttr File attributes (mime types like text/plain, application/pdf, etc)
+     *  @param callback Status callback (to monitor the whole upload process)
+     */
+    suspend fun uploadFileWithCallback(
         workDir: String,
         fileName: String,
         filePathURI: String?,
         fileAttr: String?,
+        callback: StatusCallbackMocked,
     ) {
         withContext(Dispatchers.IO) {
             Log.i(TAG_VULT, "uploadFile: workDir: $workDir")
@@ -230,7 +206,7 @@ class VultViewModel : ViewModel() {
                     /*file attrs =*/
                     fileAttr,
                     false,
-                    statusCallbackMocked
+                    callback
                 )
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "uploadFile Exception: ", e)
@@ -238,25 +214,12 @@ class VultViewModel : ViewModel() {
         }
     }
 
-    suspend fun downloadFile(fileName: String, downloadPath: String) {
-        withContext(Dispatchers.IO) {
-            Log.i(TAG_VULT, "downloadFile: ")
-            Log.i(TAG_VULT, "downloadFile: fileName: $fileName")
-            Log.i(TAG_VULT, "downloadFile: downloadPath: $downloadPath")
-            try {
-                getAllocation()?.downloadFile(
-                    /* remote path =*/
-                    "/$fileName",
-                    /* file local download path =*/
-                    downloadPath,
-                    statusCallbackMocked
-                )
-            } catch (e: Exception) {
-                Log.e(TAG_VULT, "downloadFile Exception: ", e)
-            }
-        }
-    }
-
+    /**
+     *  Downloads a file from the current allocation.
+     *  @param fileName Name of the file
+     *  @param downloadPath Download path (file location in the current android filesystem)
+     *  @param callback Status callback (to monitor the whole download process)
+     */
     suspend fun downloadFileWithCallback(
         fileName: String,
         downloadPath: String,
@@ -280,6 +243,36 @@ class VultViewModel : ViewModel() {
         }
     }
 
+    /**
+     *  Share file with another client
+     *  @param fileRemotePath - remote path of the file
+     *  @param fileName - name of the file
+     *  @param fileReferenceType - type of the file reference (if not present, default is "")
+     *  @param fileRefereeClientId - client id of the referee (if not present, default is "")
+     */
+    suspend fun getShareAuthToken(
+        fileRemotePath: String,
+        fileName: String,
+        fileReferenceType: String,
+        fileRefereeClientId: String
+    ): String? {
+        return withContext(Dispatchers.IO) {
+            Log.i(TAG_VULT, "shareFile: ")
+            Log.i(TAG_VULT, "shareFile: fileName: $fileName")
+            try {
+                return@withContext getAllocation()?.getShareAuthToken(
+                    fileRemotePath,
+                    fileName,
+                    fileReferenceType,
+                    fileRefereeClientId
+                )
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "shareFile Exception: ", e)
+                return@withContext null
+            }
+        }
+    }
+
     suspend fun listFiles(remotePath: String) {
         return withContext(Dispatchers.IO) {
             getAllocation()?.let { allocation ->
@@ -295,16 +288,6 @@ class VultViewModel : ViewModel() {
         }
     }
 
-    fun getBlobberUrlsAndId(): BlobbersUrlIdModel {
-        val blobbers = getBlobbers()
-        val blobberUrls = blobbers.map { it.url }
-        val blobberIds = blobbers.map { it.id }
-        return BlobbersUrlIdModel(
-            id = blobberIds.joinToString(","),
-            url = blobberUrls.joinToString(",")
-        )
-    }
-
     fun getStats(json: String): StatsModel {
         try {
             val statsModel = Gson().fromJson(json, StatsModel::class.java)
@@ -314,6 +297,16 @@ class VultViewModel : ViewModel() {
             Log.e(TAG_VULT, "getStats Exception: ", e)
             throw Exception("getStats Exception: $e")
         }
+    }
+
+    fun getBlobberUrlsAndId(): BlobbersUrlIdModel {
+        val blobbers = getBlobbers()
+        val blobberUrls = blobbers.map { it.url }
+        val blobberIds = blobbers.map { it.id }
+        return BlobbersUrlIdModel(
+            id = blobberIds.joinToString(","),
+            url = blobberUrls.joinToString(",")
+        )
     }
 
     private fun getBlobbers(): BlobberNodeModel {

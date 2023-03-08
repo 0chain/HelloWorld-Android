@@ -39,10 +39,14 @@ class FilesAdapter(
         else
             holder.ivIcon.setImageResource(R.drawable.ic_upload_document)
         holder.downloadButton.setOnClickListener {
-            onFileClickListener.onDownloadFileClick(position)
+            onFileClickListener.onDownloadFileClickListener(position)
         }
         holder.itemView.setOnClickListener {
             onFileClickListener.onFileClick(position)
+        }
+        holder.itemView.setOnLongClickListener {
+            onFileClickListener.onShareLongPressFileClickListener(position)
+            true
         }
     }
 
@@ -52,6 +56,7 @@ class FilesAdapter(
 }
 
 interface FileClickListener {
-    fun onDownloadFileClick(filePosition: Int)
+    fun onShareLongPressFileClickListener(position: Int)
+    fun onDownloadFileClickListener(filePosition: Int)
     fun onFileClick(filePosition: Int)
 }

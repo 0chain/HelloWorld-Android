@@ -34,9 +34,8 @@ class NetworkDetailsBottomScreenFragment : BottomSheetDialogFragment() {
         val networkDetails: MutableList<Pair<String, String>> =
             mutableListOf<Pair<String, String>>().apply {
                 add(Pair("Network Name:", networkModel.domainUrl))
-                add(Pair("Network Url:", networkModel.domainUrl))
+                add(Pair("Network Url:", networkModel.config.blockWorker))
                 add(Pair("0box Url:", networkModel.zboxUrl))
-                add(Pair("0box Domain:", networkModel.config.blockWorker))
             }
         val linearArrayAdapter = DetailsListAdapter(networkDetails)
 

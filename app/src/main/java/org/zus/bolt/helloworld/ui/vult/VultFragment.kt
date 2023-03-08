@@ -1,6 +1,9 @@
 package org.zus.bolt.helloworld.ui.vult
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.media.MediaScannerConnection
 import android.net.Uri
@@ -17,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -73,11 +77,12 @@ class VultFragment : Fragment(), FileClickListener {
 
                         CoroutineScope(Dispatchers.IO).launch {
                             isRefresh(true)
-                            vultViewModel.uploadFile(
-                                requireContext().filesDir.absolutePath,
-                                fileName,
-                                filePath,
-                                ""
+                            vultViewModel.uploadFileWithCallback(
+                                workDir = requireContext().filesDir.absolutePath,
+                                fileName = fileName,
+                                filePathURI = filePath,
+                                fileAttr = "",
+                                callback = uploadStatusCallback
                             )
                             isRefresh(false)
                         }
@@ -99,11 +104,12 @@ class VultFragment : Fragment(), FileClickListener {
 
                     CoroutineScope(Dispatchers.IO).launch {
                         isRefresh(true)
-                        vultViewModel.uploadFile(
-                            requireContext().filesDir.absolutePath,
-                            fileName,
-                            filePath,
-                            ""
+                        vultViewModel.uploadFileWithCallback(
+                            workDir = requireContext().filesDir.absolutePath,
+                            fileName = fileName,
+                            filePathURI = filePath,
+                            fileAttr = "",
+                            callback = uploadStatusCallback
                         )
                         isRefresh(false)
                     }
@@ -218,11 +224,13 @@ class VultFragment : Fragment(), FileClickListener {
             //val contentUri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.provider", File(mediaUrl))
             val returnCursor =
                 contentUri.let {
-                    requireContext().contentResolver.query(it,
+                    requireContext().contentResolver.query(
+                        it,
                         filePathColumn,
                         null,
                         null,
-                        null)
+                        null
+                    )
                 }
             if (returnCursor != null) {
                 returnCursor.moveToFirst()
@@ -259,7 +267,57 @@ class VultFragment : Fragment(), FileClickListener {
         }
     }
 
-    override fun onDownloadFileClick(filePosition: Int) {
+    override fun onShareLongPressFileClickListener(position: Int) {
+        runBlocking {
+            isRefresh(true)
+            Snackbar.make(
+                requireView(),
+                "Generating Auth Ticket for ${vultViewModel.files.value!![position].name}",
+                Snackbar.LENGTH_SHORT
+            ).show()
+            Log.i(
+                TAG_VULT,
+                "File long clicked: ${vultViewModel.files.value!![position].name}"
+            )
+            val file = vultViewModel.files.value!![position]
+            val clipboardManager =
+                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            CoroutineScope(Dispatchers.IO).launch {
+                val authShareToken = vultViewModel.getShareAuthToken(
+                    fileRemotePath = file.path,
+                    fileName = file.name,
+                    fileReferenceType = file.type,
+                    fileRefereeClientId = ""
+                )
+                if (authShareToken == null) {
+                    Snackbar.make(
+                        requireView(),
+                        "Error generating Auth Ticket",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    Log.e(
+                        TAG_VULT,
+                        "onShareLongPressFileClickListener: Error generating Auth Ticket"
+                    )
+                } else {
+                    val clipData = ClipData.newPlainText("authShareToken", authShareToken)
+                    clipboardManager.setPrimaryClip(clipData)
+                    Snackbar.make(
+                        requireView(),
+                        "Auth Ticket copied to clipboard",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    Log.i(
+                        TAG_VULT,
+                        "onShareLongPressFileClickListener: Share Auth Token = $authShareToken"
+                    )
+                }
+                isRefresh(false)
+            }
+        }
+    }
+
+    override fun onDownloadFileClickListener(filePosition: Int) {
         runBlocking {
             isRefresh(true)
             Log.i(
@@ -346,9 +404,11 @@ class VultFragment : Fragment(), FileClickListener {
                         }
 
                         override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
-                            Snackbar.make(binding.root,
+                            Snackbar.make(
+                                binding.root,
                                 "Downloading ${vultViewModel.files.value!![filePosition].name}",
-                                Snackbar.LENGTH_SHORT).show()
+                                Snackbar.LENGTH_SHORT
+                            ).show()
                         }
                     })
 
@@ -362,13 +422,16 @@ class VultFragment : Fragment(), FileClickListener {
             vultViewModel.files.value!![filePosition].name
         )
         Log.i(TAG_VULT, "File clicked: ${file.absolutePath}")
-        MediaScannerConnection.scanFile(requireContext(), arrayOf(file.absolutePath), null
+        MediaScannerConnection.scanFile(
+            requireContext(), arrayOf(file.absolutePath), null
         ) { _, uri ->
             if (uri == null) {
-                Snackbar.make(binding.root,
+                Snackbar.make(
+                    binding.root,
                     "No file found Please Downloaing the File...",
-                    Snackbar.LENGTH_SHORT).show()
-                onDownloadFileClick(filePosition)
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                onDownloadFileClickListener(filePosition)
             } else {
                 Log.i("onScanCompleted", uri.path ?: "No file found")
                 val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
@@ -381,6 +444,81 @@ class VultFragment : Fragment(), FileClickListener {
                     Log.e(TAG_VULT, "Error: ${e.message}")
                 }
             }
+        }
+    }
+
+    private val uploadStatusCallback = object : StatusCallbackMocked {
+        override fun commitMetaCompleted(p0: String?, p1: String?, p2: Exception?) {
+            Log.d(TAG_VULT, "commitMetaCompleted: ")
+            Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
+            Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
+            Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
+        }
+
+        override fun completed(
+            p0: String?,
+            p1: String?,
+            p2: String?,
+            p3: String?,
+            p4: Long,
+            p5: Long,
+        ) {
+            Log.d(TAG_VULT, "completed: ")
+            Log.d(TAG_VULT, "completed: p0: $p0")
+            Log.d(TAG_VULT, "completed: p1: $p1")
+            Log.d(TAG_VULT, "completed: p2: $p2")
+            Log.d(TAG_VULT, "completed: p3: $p3")
+            Log.d(TAG_VULT, "completed: p4: $p4")
+            Log.d(TAG_VULT, "completed: p5: $p5")
+            CoroutineScope(vultViewModel.viewModelScope.coroutineContext).launch {
+                vultViewModel.listFiles("/")
+            }
+            Snackbar.make(
+                binding.root,
+                "Successfully Uploaded the File.",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun error(p0: String?, p1: String?, p2: Long, p3: Exception?) {
+            Log.d(TAG_VULT, "error: ")
+            Log.d(TAG_VULT, "error: p0: $p0")
+            Log.d(TAG_VULT, "error: p1: $p1")
+            Log.d(TAG_VULT, "error: p2: $p2")
+            Log.d(TAG_VULT, "error: p3: $p3")
+            Snackbar.make(
+                binding.root,
+                "Unable to upload" +
+                        "Error: ${p3?.message}",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun inProgress(p0: String?, p1: String?, p2: Long, p3: Long, p4: ByteArray?) {
+            Log.d(TAG_VULT, "inProgress: ")
+            Log.d(TAG_VULT, "inProgress: p0: $p0")
+            Log.d(TAG_VULT, "inProgress: p1: $p1")
+            Log.d(TAG_VULT, "inProgress: p2: $p2")
+            Log.d(TAG_VULT, "inProgress: p3: $p3")
+            Log.d(TAG_VULT, "inProgress: p4: $p4")
+        }
+
+        override fun repairCompleted(p0: Long) {
+            Log.d(TAG_VULT, "repairCompleted: ")
+            Log.d(TAG_VULT, "repairCompleted: p0: $p0")
+        }
+
+        override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+            Log.d(TAG_VULT, "started: ")
+            Log.d(TAG_VULT, "started: p0: $p0")
+            Log.d(TAG_VULT, "started: p1: $p1")
+            Log.d(TAG_VULT, "started: p2: $p2")
+            Log.d(TAG_VULT, "started: p3: $p3")
+            Snackbar.make(
+                binding.root,
+                "Uploading file...",
+                Snackbar.LENGTH_SHORT
+            ).show()
         }
     }
 }

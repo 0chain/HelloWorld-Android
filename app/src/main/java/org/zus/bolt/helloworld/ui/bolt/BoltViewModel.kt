@@ -27,6 +27,11 @@ class BoltViewModel : ViewModel() {
         Log.i(TAG_BOLT, "onInfoAvailable: p3 $p3")
     }
 
+    /**
+     *  Submits a transaction to the network.
+     *  @param to The address of the receiver.
+     *  @param amount The amount of ZCN to send.(in base zcn long format)
+     */
     suspend fun sendTransaction(to: String, amount: String) {
         withContext(Dispatchers.IO) {
             isRefreshLiveData.postValue(true)
@@ -39,6 +44,9 @@ class BoltViewModel : ViewModel() {
         }
     }
 
+    /**
+     *  Submits a faucet txn to receive 1 ZCN from the network.
+     */
     suspend fun receiveFaucet() {
         withContext(Dispatchers.IO) {
             isRefreshLiveData.postValue(true)
@@ -72,6 +80,9 @@ class BoltViewModel : ViewModel() {
         }
     }
 
+    /**
+     *  Gets the balance of the wallet.
+     */
     suspend fun getWalletBalance() {
         return withContext(Dispatchers.IO) {
             try {
@@ -98,6 +109,18 @@ class BoltViewModel : ViewModel() {
         }
     }
 
+    /**
+     *  Gets the transactions of the wallet. Use this to get all the transactions sent from the wallet and sent to the wallet.
+     *
+     *  for receiveing all the transactions made to the wallet, use the toClientId parameter.
+     *  for receiveing all the transactions made from the wallet, use the fromClientId parameter.
+     *
+     *  @param toClientId The address of the receiver.(if using this parameter, leave the fromClientId parameter empty "")
+     *  @param fromClientId The address of the sender. (vice-versa)
+     *  @param sortOrder The order of the transactions. (asc or desc)
+     *  @param limit The limit of the transactions. (max 20)
+     *  @param offset The offset of the transactions. (to get new or old transactions, use the offset of the last transaction)
+     */
     suspend fun getTransactions(
         toClientId: String,
         fromClientId: String,
@@ -126,13 +149,10 @@ class BoltViewModel : ViewModel() {
         }
     }
 
-    suspend fun getBlobbers() {
-        withContext(Dispatchers.IO) {
-            isRefreshLiveData.postValue(true)
-            Zcncore.getBlobbers(getInfoCallback, /* limit */ 20, /* offset */ 0, true)
-        }
-    }
-
+    /**
+     *  Gets the nonce for any transaction.
+     *  Nonce is a unique or randomly generated number that is used only once for a transaction.
+     */
     private suspend fun getNonce(): Long {
         return withContext(Dispatchers.IO) {
             var nonceGlobal: Long = 0L
