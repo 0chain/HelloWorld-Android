@@ -81,7 +81,7 @@ class VultFragment : Fragment(), FileClickListener {
                                 workDir = requireContext().filesDir.absolutePath,
                                 fileName = fileName,
                                 filePathURI = filePath,
-                                fileAttr = "",
+                                fileThumbnailPath = "",
                                 callback = uploadStatusCallback
                             )
                             isRefresh(false)
@@ -108,7 +108,7 @@ class VultFragment : Fragment(), FileClickListener {
                             workDir = requireContext().filesDir.absolutePath,
                             fileName = fileName,
                             filePathURI = filePath,
-                            fileAttr = "",
+                            fileThumbnailPath = "",
                             callback = uploadStatusCallback
                         )
                         isRefresh(false)

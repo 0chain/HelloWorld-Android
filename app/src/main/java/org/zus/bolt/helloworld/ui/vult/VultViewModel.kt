@@ -180,21 +180,21 @@ class VultViewModel : ViewModel() {
      *  @param workDir Working directory (temporary directory for gosdk to operate default is filsDir of the app)
      *  @param fileName Name of the file
      *  @param filePathURI File path URI (file location in the current android filesystem)
-     *  @param fileAttr File attributes (mime types like text/plain, application/pdf, etc)
+     *  @param fileThumbnailPath File thumbnail path (file location in the current android filesystem)
      *  @param callback Status callback (to monitor the whole upload process)
      */
     suspend fun uploadFileWithCallback(
         workDir: String,
         fileName: String,
         filePathURI: String?,
-        fileAttr: String?,
+        fileThumbnailPath: String?,
         callback: StatusCallbackMocked,
     ) {
         withContext(Dispatchers.IO) {
             Log.i(TAG_VULT, "uploadFile: workDir: $workDir")
             Log.i(TAG_VULT, "uploadFile: fileName: $fileName")
             Log.i(TAG_VULT, "uploadFile: filePathURI: $filePathURI")
-            Log.i(TAG_VULT, "uploadFile: fileAttr: $fileAttr")
+            Log.i(TAG_VULT, "uploadFile: fileThumbnailPath: $fileThumbnailPath")
             try {
                 getAllocation()?.uploadFile(
                     /*work dir =*/
@@ -204,7 +204,7 @@ class VultViewModel : ViewModel() {
                     /* remote path =*/
                     "/$fileName",
                     /*file attrs =*/
-                    fileAttr,
+                    fileThumbnailPath,
                     false,
                     callback
                 )
