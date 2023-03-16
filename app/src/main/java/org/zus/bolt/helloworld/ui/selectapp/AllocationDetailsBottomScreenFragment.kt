@@ -34,7 +34,7 @@ class AllocationDetailsBottomScreenFragment(
                 add(Pair("Size:", allocationModel[0].size.getConvertedSize()))
             }
 
-        val linearArrayAdapter = DetailsListAdapter(allocationDetails)
+        val linearArrayAdapter = DetailsListAdapter(requireActivity(), allocationDetails)
 
         binding.detailsListView.adapter = linearArrayAdapter
 

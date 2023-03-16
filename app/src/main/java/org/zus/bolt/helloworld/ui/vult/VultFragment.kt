@@ -60,6 +60,65 @@ class VultFragment : Fragment(), FileClickListener {
         downloadPath =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
 
+        CoroutineScope(Dispatchers.IO).launch {
+            isRefresh(true)
+
+            // Storage SDK initialization and wallet initialization.
+            vultViewModel.storageSDK =
+                VultViewModel.initZboxStorageSDK(
+                    Utils(requireContext()).config,
+                    Utils(requireContext()).readWalletFromFileJSON()
+                )
+
+            if (vultViewModel.getAllocation() == null) {
+                vultViewModel.createAllocation(
+                    allocationName = "test allocation",
+                    dataShards = 2,
+                    parityShards = 2,
+                    allocationSize = 2147483648,
+                    expirationSeconds = Date().time / 1000 + 30000,
+                    lockTokens = Zcncore.convertToValue(1.0),
+                )
+                updateTotalSizeProgress()
+
+            } else {
+                vultViewModel.getAllocation().let { allocation ->
+                    if (allocation?.id == null) {
+                        throw Exception("Allocation id is null")
+                    } else {
+                        val statsModel = vultViewModel.getStats(allocation.stats)
+                        requireActivity().runOnUiThread {
+                            binding.allocationProgressView.progress =
+                                (100 * statsModel.used_size / allocation.size).toInt()
+                            binding.tvAllocationDate.text =
+                                allocation.expiration.getConvertedDateTime()
+                            binding.tvStorageUsed.text = getString(
+                                R.string.storage_used,
+                                statsModel.used_size.getConvertedSize(),
+                                allocation.size.getConvertedSize()
+                            )
+                            vultViewModel.totalStorageUsed.observe(viewLifecycleOwner) { totalStorageUsed ->
+                                if (totalStorageUsed != null) {
+                                    binding.tvStorageUsed.text =
+                                        getString(
+                                            R.string.storage_used,
+                                            totalStorageUsed.getConvertedSize(),
+                                            allocation.size.getConvertedSize()
+                                        )
+                                    binding.allocationProgressView.progress =
+                                        (100 * totalStorageUsed / allocation.size).toInt()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            vultViewModel.getAllocation()
+            vultViewModel.listFiles("/")
+            isRefresh(false)
+        }
+
         val documentPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -124,6 +183,7 @@ class VultFragment : Fragment(), FileClickListener {
         binding.rvAllFiles.adapter = filesAdapter
 
 
+
         vultViewModel.files.observe(viewLifecycleOwner) { files ->
             if (files != null)
                 filesAdapter.files = files
@@ -149,51 +209,8 @@ class VultFragment : Fragment(), FileClickListener {
                 isRefresh(false)
             }
         }
-        CoroutineScope(Dispatchers.IO).launch {
-            isRefresh(true)
 
-            // Storage SDK initialization and wallet initialization.
-            vultViewModel.storageSDK =
-                VultViewModel.initZboxStorageSDK(
-                    Utils(requireContext()).config,
-                    Utils(requireContext()).readWalletFromFileJSON()
-                )
 
-            if (vultViewModel.getAllocation() == null) {
-                vultViewModel.createAllocation(
-                    allocationName = "test allocation",
-                    dataShards = 2,
-                    parityShards = 2,
-                    allocationSize = 2147483648,
-                    expirationSeconds = Date().time / 1000 + 30000,
-                    lockTokens = Zcncore.convertToValue(1.0),
-                )
-                updateTotalSizeProgress()
-
-            } else {
-                vultViewModel.getAllocation().let { allocation ->
-                    if (allocation?.id == null) {
-                        throw Exception("Allocation id is null")
-                    } else {
-                        val statsModel = vultViewModel.getStats(allocation.stats)
-                        requireActivity().runOnUiThread {
-                            binding.allocationProgressView.progress =
-                                ((statsModel.used_size / allocation.size) * 100).toInt()
-                            binding.tvAllocationDate.text =
-                                allocation.expiration.getConvertedDateTime()
-                            binding.tvStorageUsed.text = getString(
-                                R.string.storage_used,
-                                statsModel.used_size.getConvertedSize(),
-                                allocation.size.getConvertedSize()
-                            )
-                        }
-                    }
-                }
-            }
-            vultViewModel.getAllocation()
-            vultViewModel.listFiles("/")
-            isRefresh(false)
-        }
 
         return binding.root
     }

@@ -8,6 +8,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBinding
 import org.zus.bolt.helloworld.models.bolt.WalletModel
+import org.zus.bolt.helloworld.utils.Utils.Companion.getShortFormattedString
 
 class WalletDetailsBottomScreenFragment(
     private val walletModel: WalletModel,
@@ -31,7 +32,7 @@ class WalletDetailsBottomScreenFragment(
 
 
         //linear layout adapter
-        val linearArrayAdapter = DetailsListAdapter(walletDetails)
+        val linearArrayAdapter = DetailsListAdapter(requireActivity(), walletDetails)
 
         binding.detailsListView.adapter = linearArrayAdapter
 

@@ -65,14 +65,11 @@ class BoltFragment : Fragment() {
         }
         boltViewModel.balanceLiveData.observe(viewLifecycleOwner) { balance ->
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
-            try {
-                binding.zcnDollar.text = getString(
-                    R.string.zcn_dollar,
-                    Zcncore.convertTokenToUSD(balance.toDouble())
-                )
-            } catch (e: java.lang.NumberFormatException) {
-                binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0)
-                Log.e(TAG_BOLT, "updateBalance: error ", e)
+            CoroutineScope(Dispatchers.IO).launch {
+                val dollar = Zcncore.convertTokenToUSD(balance.toDouble())
+                requireActivity().runOnUiThread {
+                    binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
+                }
             }
         }
 

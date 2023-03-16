@@ -37,7 +37,7 @@ class NetworkDetailsBottomScreenFragment : BottomSheetDialogFragment() {
                 add(Pair("Network Url:", networkModel.config.blockWorker))
                 add(Pair("0box Url:", networkModel.zboxUrl))
             }
-        val linearArrayAdapter = DetailsListAdapter(networkDetails)
+        val linearArrayAdapter = DetailsListAdapter(requireActivity(), networkDetails)
 
         binding.detailsListView.adapter = linearArrayAdapter
 

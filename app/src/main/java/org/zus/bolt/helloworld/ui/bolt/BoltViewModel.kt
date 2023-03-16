@@ -143,6 +143,7 @@ class BoltViewModel : ViewModel() {
                 isRefreshLiveData.postValue(false)
                 if (error.isEmpty() && !json.isNullOrBlank() && json.isNotEmpty()) {
                     val transactions = Gson().fromJson(json, Array<TransactionModel>::class.java)
+                        ?: return@getTransactions
                     this@BoltViewModel.transactionsLiveData.postValue(
                         transactions.toList().mergeListsWithoutDuplicates(
                             this@BoltViewModel.transactionsLiveData.value ?: listOf()

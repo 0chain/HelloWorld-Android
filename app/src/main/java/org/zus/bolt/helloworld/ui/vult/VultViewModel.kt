@@ -22,6 +22,7 @@ class VultViewModel : ViewModel() {
     lateinit var allocationId: String
     lateinit var allocation: AllocationModel
     var files: MutableLiveData<List<FileModel>> = MutableLiveData()
+    var totalStorageUsed = MutableLiveData<Long>()
 
     companion object {
         fun initZboxStorageSDK(config: String, walletJSON: String): StorageSDK =
@@ -281,6 +282,11 @@ class VultViewModel : ViewModel() {
                     Log.i(TAG_VULT, "listFiles: json: $json")
                     val files = Gson().fromJson(json, FileResponseModel::class.java)
                     this@VultViewModel.files.postValue(files.list)
+                    var totalStorage = 0L
+                    for (file in files.list) {
+                        totalStorage += file.size
+                    }
+                    this@VultViewModel.totalStorageUsed.postValue(totalStorage)
                 } catch (e: Exception) {
                     Log.e(TAG_VULT, "listFiles Exception: ", e)
                 }
@@ -308,6 +314,7 @@ class VultViewModel : ViewModel() {
             url = blobberUrls.joinToString(",")
         )
     }
+
 
     private fun getBlobbers(): BlobberNodeModel {
         try {
