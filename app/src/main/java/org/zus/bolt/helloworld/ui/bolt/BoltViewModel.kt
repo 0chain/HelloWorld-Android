@@ -8,10 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.zus.bolt.helloworld.models.bolt.BalanceModel
 import org.zus.bolt.helloworld.models.bolt.TransactionModel
+import org.zus.bolt.helloworld.utils.Utils.Companion.mergeListsWithoutDuplicates
 import zcncore.GetInfoCallback
 import zcncore.Transaction
 import zcncore.TransactionCallback
 import zcncore.Zcncore
+import java.util.*
 
 class BoltViewModel : ViewModel() {
     val transactionsLiveData: MutableLiveData<List<TransactionModel>> = MutableLiveData()
@@ -25,6 +27,26 @@ class BoltViewModel : ViewModel() {
         Log.i(TAG_BOLT, "onInfoAvailable: p1 $p1")
         Log.i(TAG_BOLT, "onInfoAvailable: p2 $p2")
         Log.i(TAG_BOLT, "onInfoAvailable: p3 $p3")
+    }
+
+    /* Use this callback while making a transaction. */
+    private val transactionCallback = object : TransactionCallback {
+        override fun onAuthComplete(p0: Transaction?, p1: Long) {
+            // confirmation of successful authentication of the transaction.
+        }
+
+        override fun onTransactionComplete(transaction: Transaction?, status: Long) {
+            // confirmation of successful transaction.
+            isRefreshLiveData.postValue(false)
+            if (status == 0L) {
+                // Successful status of the transaction.
+            }
+        }
+
+        override fun onVerifyComplete(p0: Transaction?, p1: Long) {
+            // confirmation of successful verification of the transaction.
+            isRefreshLiveData.postValue(false)
+        }
     }
 
     /**
@@ -60,26 +82,6 @@ class BoltViewModel : ViewModel() {
         }
     }
 
-    /* Use this callback while making a transaction. */
-    private val transactionCallback = object : TransactionCallback {
-        override fun onAuthComplete(p0: Transaction?, p1: Long) {
-            // confirmation of successful authentication of the transaction.
-        }
-
-        override fun onTransactionComplete(transaction: Transaction?, status: Long) {
-            // confirmation of successful transaction.
-            isRefreshLiveData.postValue(false)
-            if (status == 0L) {
-                // Successful status of the transaction.
-            }
-        }
-
-        override fun onVerifyComplete(p0: Transaction?, p1: Long) {
-            // confirmation of successful verification of the transaction.
-            isRefreshLiveData.postValue(false)
-        }
-    }
-
     /**
      *  Gets the balance of the wallet.
      */
@@ -112,8 +114,8 @@ class BoltViewModel : ViewModel() {
     /**
      *  Gets the transactions of the wallet. Use this to get all the transactions sent from the wallet and sent to the wallet.
      *
-     *  for receiveing all the transactions made to the wallet, use the toClientId parameter.
-     *  for receiveing all the transactions made from the wallet, use the fromClientId parameter.
+     *  for receiving all the transactions made to the wallet, use the toClientId parameter.
+     *  for receiving all the transactions made from the wallet, use the fromClientId parameter.
      *
      *  @param toClientId The address of the receiver.(if using this parameter, leave the fromClientId parameter empty "")
      *  @param fromClientId The address of the sender. (vice-versa)
@@ -141,7 +143,11 @@ class BoltViewModel : ViewModel() {
                 isRefreshLiveData.postValue(false)
                 if (error.isEmpty() && !json.isNullOrBlank() && json.isNotEmpty()) {
                     val transactions = Gson().fromJson(json, Array<TransactionModel>::class.java)
-                    this@BoltViewModel.transactionsLiveData.postValue(transactions.toList())
+                    this@BoltViewModel.transactionsLiveData.postValue(
+                        transactions.toList().mergeListsWithoutDuplicates(
+                            this@BoltViewModel.transactionsLiveData.value ?: listOf()
+                        )
+                    )
                 } else {
                     Log.e(TAG_BOLT, "getTransactions: $error")
                 }

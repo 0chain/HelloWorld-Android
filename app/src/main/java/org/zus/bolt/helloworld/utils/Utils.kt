@@ -14,6 +14,7 @@ import androidx.core.database.getStringOrNull
 import com.google.gson.Gson
 import org.json.JSONException
 import org.json.JSONObject
+import org.zus.bolt.helloworld.models.bolt.TransactionModel
 import org.zus.bolt.helloworld.models.bolt.WalletModel
 import org.zus.bolt.helloworld.ui.TAG_CREATE_WALLET
 import java.io.File
@@ -108,6 +109,35 @@ class Utils(private var applicationContext: Context) {
                 Log.e(TAG_CREATE_WALLET, "json string $this")
                 false
             }
+        }
+
+        fun List<TransactionModel>.mergeListsWithoutDuplicates(
+            list2: List<TransactionModel>
+        ): List<TransactionModel> {
+            val list1 = this
+            val listString1 = list1.map { it.hash }
+            val listString2 = list2.map { it.hash }
+            val list = mutableListOf<TransactionModel>()
+            val listString = mutableListOf<String>()
+            listString.addAll(listString1)
+            listString.addAll(listString2)
+            val uniqueListString = listString.distinct()
+            for (item in uniqueListString) {
+                val transactionModel = list1.find { it.hash == item }
+                if (transactionModel != null) {
+                    list.add(transactionModel)
+                } else {
+                    val transactionModel2 = list2.find { it.hash == item }
+                    if (transactionModel2 != null) {
+                        list.add(transactionModel2)
+                    }
+                }
+            }
+            //Todo: Test this more as for now it seems to work.
+            list.sortedByDescending {
+                it.creation_date
+            }
+            return list
         }
     }
 

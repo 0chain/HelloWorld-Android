@@ -165,6 +165,14 @@ class BoltFragment : Fragment() {
     /* Get transactions. */
     private suspend fun updateTransactions() {
         boltViewModel.getTransactions(
+            fromClientId = "",
+            toClientId = mainViewModel.wallet?.mClientId ?: "",
+            sortOrder = Sort.getSort(SortEnum.DESC),
+            limit = 20,
+            offset = 0
+        )
+        delay(1500)
+        boltViewModel.getTransactions(
             fromClientId = mainViewModel.wallet?.mClientId ?: "",
             toClientId = "",
             sortOrder = Sort.getSort(SortEnum.DESC),
