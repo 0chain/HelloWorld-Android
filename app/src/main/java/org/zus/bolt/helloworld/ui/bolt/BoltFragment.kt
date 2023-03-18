@@ -46,7 +46,7 @@ class BoltFragment : Fragment() {
             binding.swipeRefresh.isRefreshing = isRefresh
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Main).launch {
             val calls = async {
                 updateBalance()
                 updateTransactions()
@@ -65,21 +65,18 @@ class BoltFragment : Fragment() {
         }
         boltViewModel.balanceLiveData.observe(viewLifecycleOwner) { balance ->
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
-            try {
-                binding.zcnDollar.text = getString(
-                    R.string.zcn_dollar,
-                    Zcncore.convertTokenToUSD(balance.toDouble())
-                )
-            } catch (e: java.lang.NumberFormatException) {
-                binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0)
-                Log.e(TAG_BOLT, "updateBalance: error ", e)
+            CoroutineScope(Dispatchers.IO).launch {
+                val dollar = Zcncore.convertTokenToUSD(balance.toDouble())
+                requireActivity().runOnUiThread {
+                    binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
+                }
             }
         }
 
         /* Receive token faucet transaction. */
         binding.mFaucet.setOnClickListener {
             /* updating the balance after 3 seconds.*/
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 boltViewModel.receiveFaucet()
                 val calls = async {
                     updateBalance()
@@ -107,7 +104,7 @@ class BoltFragment : Fragment() {
                         )
                         amountTIL?.error = "Amount should be greater than 0"
                     } else {
-                        CoroutineScope(Dispatchers.IO).launch {
+                        CoroutineScope(Dispatchers.Main).launch {
                             boltViewModel.sendTransaction(address, amount)
                         }
                     }
@@ -151,7 +148,7 @@ class BoltFragment : Fragment() {
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 val calls = async {
                     updateTransactions()
                     updateBalance()
@@ -164,6 +161,14 @@ class BoltFragment : Fragment() {
 
     /* Get transactions. */
     private suspend fun updateTransactions() {
+        boltViewModel.getTransactions(
+            fromClientId = "",
+            toClientId = mainViewModel.wallet?.mClientId ?: "",
+            sortOrder = Sort.getSort(SortEnum.DESC),
+            limit = 20,
+            offset = 0
+        )
+        delay(1500)
         boltViewModel.getTransactions(
             fromClientId = mainViewModel.wallet?.mClientId ?: "",
             toClientId = "",

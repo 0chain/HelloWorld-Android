@@ -38,9 +38,9 @@
     <string name="_9e330d869f8e195c650a">9e330d869f8e195c650a...fewjif939032u03u9u</string>
     <string name="storage_used">%1$s used of %2$s</string>
     <string name="allocation_details">Allocation\n Details</string>
-    <string name="upload_document">Upload Document</string>
+    <string name="upload_document">Upload File</string>
     <string name="upload_image">Upload Image</string>
-    <string name="wallet_json">
+    <string name="wallet_details_dummy">
         client_id:"0e789ab0840f454e2d145088507d41faf78bc553b64798bd8e350c596b8d83c9",\n
         "client_key":"dd6f0126f0db271e88ee63d74dc786766fab283a7c22e8a03a8fa960f546430a42cdfd380db762b6f91abdbc7d2005c0d0331dbcb2f1ca397d231b6bd1d08523",
         "keys":[{
@@ -50,13 +50,29 @@
         "version":"1.0",
         "date_created":"1672840441",
         "nonce":0}</string>
-    <string name="wallet_json_2">
+    <string name="wallet_details_template">
         client_id: %1$s \n
         client_key: %2$s \n
         keys: %3$s \n
         mnemonics: %4$s \n
         version: %5$s \n
         date_created: %6$s \n
+    </string>
+    <string name="wallet_json">
+       {\n
+          "client_id": "9e3a2a52c365540f23e129890d1b1a04cfa2d33e2efd685b49f0fe9db9d52c41",\n
+          "client_key": "3a43be68984074c51db4a11019823f5dee3179c7fddf487fd2252cc13e4e861338ee63514226462376e5fe1cd4235607a1fe28edfe728b13e3428711c4151f97",\n
+          "keys": [\n
+            {\n
+              "public_key": "3a43be68984074c51db4a11019823f5dee3179c7fddf487fd2252cc13e4e861338ee63514226462376e5fe1cd4235607a1fe28edfe728b13e3428711c4151f97",\n
+              "private_key": "66f3de00741cda9b777ff7424e69df06701f96774690050730bef53653e2da0b"\n
+            }\n
+          ],\n
+          "mnemonics": "letter quantum brisk venture happy mind thought company govern water much aunt topple physical civil pizza merry grief fresh choice fire game digital fiction",\n
+          "version": "1.0",\n
+          "date_created": "1678257901",\n
+          "nonce": 0\n
+        }
     </string>
     <string name="no_wallet">Create a wallet first</string>
     <string name="no_allocation">No allocation</string>
@@ -70,4 +86,7 @@
     <string name="allocation_details_title">Allocation Details</string>
     <string name="wallet_details_title">Wallet Details</string>
     <string name="creating_allocation">Creating Vult Allocation</string>
+    <string name="open">Open</string>
+    <string name="cancel">Cancel</string>
+    <string name="copy">Copy</string>
 </resources>

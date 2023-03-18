@@ -1,6 +1,7 @@
 package org.zus.bolt.helloworld.ui.bolt
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,13 +36,31 @@ class TransactionsAdapter(
         holder.tvHash.text = buildString {
             append(position + 1)
             append(". ")
-            append(transactions[position].hash.substring(0,
-                6))
+            append(
+                transactions[position].hash.substring(
+                    0,
+                    6
+                )
+            )
             append("...")
-            append(transactions[position].hash.substring(transactions[position].hash.length - 6,
-                transactions[position].hash.length))
+            append(
+                transactions[position].hash.substring(
+                    transactions[position].hash.length - 6,
+                    transactions[position].hash.length
+                )
+            )
         }
-        holder.tvDateTime.text = transactions[position].creation_date.getConvertedDateTime()
+
+        // We are getting the unix timestamp in nano seconds, so we need to divide it by 1000000000 to get the date in seconds
+        holder.tvDateTime.text =
+            (transactions[position].creation_date / 1000000000).getConvertedDateTime()
+
+        holder.itemView.setOnClickListener {
+            val url = "https://demo.atlus.cloud/transaction-details/${transactions[position].hash}"
+            val openUrl = Intent(Intent.ACTION_VIEW)
+            openUrl.data = android.net.Uri.parse(url)
+            context.startActivity(openUrl)
+        }
     }
 
     override fun getItemCount() = transactions.size

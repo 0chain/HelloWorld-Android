@@ -42,29 +42,26 @@ class SelectAppFragment : Fragment() {
             )
         }
         binding.cvAllocationDetails.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 try {
                     val allocationModel = vultViewModel.getAllocationModel()
-                    requireActivity().runOnUiThread {
-                        if (allocationModel != null)
-                            AllocationDetailsBottomScreenFragment(allocationModel).show(
-                                parentFragmentManager,
-                                "AllocationDetailsBottomScreenFragment")
-                        else
-                            Snackbar.make(
-                                binding.root,
-                                "Error: Allocation not found",
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                    }
-                } catch (e: Exception) {
-                    requireActivity().runOnUiThread {
+                    if (allocationModel != null)
+                        AllocationDetailsBottomScreenFragment(allocationModel).show(
+                            parentFragmentManager,
+                            "AllocationDetailsBottomScreenFragment"
+                        )
+                    else
                         Snackbar.make(
                             binding.root,
-                            "Error: ${e.message}",
+                            "Error: Allocation not found",
                             Snackbar.LENGTH_LONG
                         ).show()
-                    }
+                } catch (e: Exception) {
+                    Snackbar.make(
+                        binding.root,
+                        "Error: ${e.message}",
+                        Snackbar.LENGTH_LONG
+                    ).show()
                 }
             }
 

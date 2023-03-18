@@ -99,30 +99,33 @@ class CreateWalletFragment : Fragment() {
             wallet.walletJson = walletJson
             Zcncore.setWalletInfo(walletJson, false)
             // ZcnSDK().readPoolLock(1.0,0.0)
-            runBlocking {
-                CoroutineScope(Dispatchers.IO).launch {
-                    requireActivity().runOnUiThread {
-                        binding.btCreateWallet.text = getString(R.string.creating_allocation)
-                    }
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.btCreateWallet.text = getString(R.string.creating_allocation)
 
-                    vultViewModel.storageSDK =
-                        VultViewModel.initZboxStorageSDK(
-                            Utils(requireContext()).config,
-                            Utils(requireContext()).readWalletFromFileJSON()
-                        )
+                vultViewModel.storageSDK =
+                    VultViewModel.initZboxStorageSDK(
+                        Utils(requireContext()).config,
+                        Utils(requireContext()).readWalletFromFileJSON()
+                    )
 
-                    if (vultViewModel.getAllocation() == null) {
-                        ZcnSDK().faucet("pour", "{Pay day}", 10.0)
-                        vultViewModel.createAllocation(
-                            allocationName = "test allocation",
-                            dataShards = 2,
-                            parityShards = 2,
-                            allocationSize = 2147483648,
-                            expirationSeconds = Date().time / 1000 + 30000,
-                            lockTokens = Zcncore.convertToValue(1.0),
-                        )
+                binding.btCreateWallet.setOnClickListener {
+                    binding.progressView.visibility = View.VISIBLE
+                    mainViewModel.createWalletSemaphore.postValue(true)
+                    binding.btCreateWallet.text = getString(R.string.creating_allocation)
+                    CoroutineScope(Dispatchers.Main).launch {
+                        createAllocation()
+                        mainViewModel.createWalletSemaphore.postValue(false)
                     }
-                    requireActivity().runOnUiThread {
+                }
+
+                if (vultViewModel.getAllocation() == null) {
+                    ZcnSDK().faucet("pour", "{Pay day}", 10.0)
+                    createAllocation()
+                }
+                mainViewModel.createWalletSemaphore.observe(
+                    viewLifecycleOwner
+                ) { isCreatingAllocation ->
+                    if (!isCreatingAllocation) {
                         binding.progressView.visibility = View.GONE
                         findNavController().navigate(R.id.action_createWalletFragment_to_selectAppFragment)
                     }
@@ -132,4 +135,13 @@ class CreateWalletFragment : Fragment() {
             Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
         }
     }
+
+    suspend fun createAllocation() = vultViewModel.createAllocation(
+        allocationName = "test allocation",
+        dataShards = 2,
+        parityShards = 2,
+        allocationSize = 2147483648,
+        expirationSeconds = Date().time / 1000 + 1500000,
+        lockTokens = Zcncore.convertToValue(3.0),
+    )
 }
