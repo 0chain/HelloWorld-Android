@@ -65,7 +65,7 @@ class BoltFragment : Fragment() {
         }
         boltViewModel.balanceLiveData.observe(viewLifecycleOwner) { balance ->
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
-            CoroutineScope(Dispatchers.Main).launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 val dollar = Zcncore.convertTokenToUSD(balance.toDouble())
                 requireActivity().runOnUiThread {
                     binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
