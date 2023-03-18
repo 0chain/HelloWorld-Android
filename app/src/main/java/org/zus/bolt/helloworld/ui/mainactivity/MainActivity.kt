@@ -48,11 +48,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         /* Setting wallet json. */
-        runBlocking {
-            viewModel.wallet = utils.getWalletModel()
-            viewModel.setWalletJson(utils.readWalletFromFileJSON())
-            Log.i("WalletDetails", "json: ${viewModel.wallet?.walletJson}")
-        }
+        viewModel.wallet = utils.getWalletModel()
+        viewModel.setWalletJson(utils.readWalletFromFileJSON())
+        Log.i("WalletDetails", "json: ${viewModel.wallet?.walletJson}")
 
         val permissions = arrayOf(
             android.Manifest.permission.READ_EXTERNAL_STORAGE,

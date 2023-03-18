@@ -60,7 +60,7 @@ class VultFragment : Fragment(), FileClickListener {
         downloadPath =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Main).launch {
             isRefresh(true)
 
             // Storage SDK initialization and wallet initialization.
@@ -134,7 +134,7 @@ class VultFragment : Fragment(), FileClickListener {
                         Log.i(TAG_VULT, "File name: $fileName")
                         Log.i(TAG_VULT, "File path: $filePath")
 
-                        CoroutineScope(Dispatchers.IO).launch {
+                        CoroutineScope(Dispatchers.Main).launch {
                             isRefresh(true)
                             vultViewModel.uploadFileWithCallback(
                                 workDir = requireContext().filesDir.absolutePath,
@@ -161,7 +161,7 @@ class VultFragment : Fragment(), FileClickListener {
                     Log.i(TAG_VULT, "File name: $fileName")
                     Log.i(TAG_VULT, "File path: $filePath")
 
-                    CoroutineScope(Dispatchers.IO).launch {
+                    CoroutineScope(Dispatchers.Main).launch {
                         isRefresh(true)
                         vultViewModel.uploadFileWithCallback(
                             workDir = requireContext().filesDir.absolutePath,
@@ -204,7 +204,7 @@ class VultFragment : Fragment(), FileClickListener {
             documentPicker.launch(intent)
         }
         binding.swipeRefreshLayout.setOnRefreshListener {
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 vultViewModel.listFiles("/")
                 isRefresh(false)
             }
@@ -279,157 +279,150 @@ class VultFragment : Fragment(), FileClickListener {
     }
 
     private fun isRefresh(bool: Boolean) {
-        requireActivity().runOnUiThread {
-            binding.swipeRefreshLayout.isRefreshing = bool
-        }
+        binding.swipeRefreshLayout.isRefreshing = bool
     }
 
     override fun onShareLongPressFileClickListener(position: Int) {
-        runBlocking {
-            isRefresh(true)
-            Snackbar.make(
-                requireView(),
-                "Generating Auth Ticket for ${vultViewModel.files.value!![position].name}",
-                Snackbar.LENGTH_SHORT
-            ).show()
-            Log.i(
-                TAG_VULT,
-                "File long clicked: ${vultViewModel.files.value!![position].name}"
+        isRefresh(true)
+        Snackbar.make(
+            requireView(),
+            "Generating Auth Ticket for ${vultViewModel.files.value!![position].name}",
+            Snackbar.LENGTH_SHORT
+        ).show()
+        Log.i(
+            TAG_VULT,
+            "File long clicked: ${vultViewModel.files.value!![position].name}"
+        )
+        val file = vultViewModel.files.value!![position]
+        val clipboardManager =
+            requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        CoroutineScope(Dispatchers.Main).launch {
+            val authShareToken = vultViewModel.getShareAuthToken(
+                fileRemotePath = file.path,
+                fileName = file.name,
+                fileReferenceType = file.type,
+                fileRefereeClientId = ""
             )
-            val file = vultViewModel.files.value!![position]
-            val clipboardManager =
-                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            CoroutineScope(Dispatchers.IO).launch {
-                val authShareToken = vultViewModel.getShareAuthToken(
-                    fileRemotePath = file.path,
-                    fileName = file.name,
-                    fileReferenceType = file.type,
-                    fileRefereeClientId = ""
+            if (authShareToken == null) {
+                Snackbar.make(
+                    requireView(),
+                    "Error generating Auth Ticket",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                Log.e(
+                    TAG_VULT,
+                    "onShareLongPressFileClickListener: Error generating Auth Ticket"
                 )
-                if (authShareToken == null) {
-                    Snackbar.make(
-                        requireView(),
-                        "Error generating Auth Ticket",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                    Log.e(
-                        TAG_VULT,
-                        "onShareLongPressFileClickListener: Error generating Auth Ticket"
-                    )
-                } else {
-                    val clipData = ClipData.newPlainText("authShareToken", authShareToken)
-                    clipboardManager.setPrimaryClip(clipData)
-                    Snackbar.make(
-                        requireView(),
-                        "Auth Ticket copied to clipboard",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                    Log.i(
-                        TAG_VULT,
-                        "onShareLongPressFileClickListener: Share Auth Token = $authShareToken"
-                    )
-                }
-                isRefresh(false)
+            } else {
+                val clipData = ClipData.newPlainText("authShareToken", authShareToken)
+                clipboardManager.setPrimaryClip(clipData)
+                Snackbar.make(
+                    requireView(),
+                    "Auth Ticket copied to clipboard",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                Log.i(
+                    TAG_VULT,
+                    "onShareLongPressFileClickListener: Share Auth Token = $authShareToken"
+                )
             }
+            isRefresh(false)
         }
     }
 
     override fun onDownloadFileClickListener(filePosition: Int) {
-        runBlocking {
-            isRefresh(true)
-            Log.i(
-                TAG_VULT,
-                "File clicked: ${vultViewModel.files.value!![filePosition].name}"
-            )
-            //Create new folder in external directory.
-            CoroutineScope(Dispatchers.IO).launch {
-                vultViewModel.downloadFileWithCallback(
-                    vultViewModel.files.value!![filePosition].name,
-                    downloadPath, object : StatusCallbackMocked {
-                        override fun commitMetaCompleted(
-                            p0: String?,
-                            p1: String?,
-                            p2: java.lang.Exception?,
-                        ) {
-                            Log.d(TAG_VULT, "commitMetaCompleted: ")
-                            Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
-                            Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
-                            Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
-                        }
+        isRefresh(true)
+        Log.i(
+            TAG_VULT,
+            "File clicked: ${vultViewModel.files.value!![filePosition].name}"
+        )
+        //Create new folder in external directory.
+        CoroutineScope(Dispatchers.Main).launch {
+            vultViewModel.downloadFileWithCallback(
+                vultViewModel.files.value!![filePosition].name,
+                downloadPath, object : StatusCallbackMocked {
+                    override fun commitMetaCompleted(
+                        p0: String?,
+                        p1: String?,
+                        p2: java.lang.Exception?,
+                    ) {
+                        Log.d(TAG_VULT, "commitMetaCompleted: ")
+                        Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
+                        Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
+                        Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
+                    }
 
-                        override fun completed(
-                            p0: String?,
-                            p1: String?,
-                            p2: String?,
-                            p3: String?,
-                            p4: Long,
-                            p5: Long,
-                        ) {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                isRefresh(false)
-                                val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
-                                    setDataAndType(
-                                        Utils(requireContext()).getUriForFile(
-                                            File(
-                                                downloadPath,
-                                                vultViewModel.files.value!![filePosition].name
-                                            )
-                                        ),
-                                        vultViewModel.files.value!![filePosition].mimetype
-                                    )
-                                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                                }
-                                try {
-                                    startActivity(intentOpenDownloadedFile)
-                                } catch (e: Exception) {
-                                    Log.e(TAG_VULT, "Error: ${e.message}")
-                                }
+                    override fun completed(
+                        p0: String?,
+                        p1: String?,
+                        p2: String?,
+                        p3: String?,
+                        p4: Long,
+                        p5: Long,
+                    ) {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            isRefresh(false)
+                            val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(
+                                    Utils(requireContext()).getUriForFile(
+                                        File(
+                                            downloadPath,
+                                            vultViewModel.files.value!![filePosition].name
+                                        )
+                                    ),
+                                    vultViewModel.files.value!![filePosition].mimetype
+                                )
+                                flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+                            }
+                            try {
+                                startActivity(intentOpenDownloadedFile)
+                            } catch (e: Exception) {
+                                Log.e(TAG_VULT, "Error: ${e.message}")
                             }
                         }
+                    }
 
-                        override fun error(
-                            p0: String?,
-                            p1: String?,
-                            p2: Long,
-                            p3: java.lang.Exception?,
-                        ) {
-                            Log.d(TAG_VULT, "error: ")
-                            Log.d(TAG_VULT, "error: p0: $p0")
-                            Log.d(TAG_VULT, "error: p1: $p1")
-                            Log.d(TAG_VULT, "error: p2: $p2")
-                            Log.d(TAG_VULT, "error: p3: $p3")
-                        }
+                    override fun error(
+                        p0: String?,
+                        p1: String?,
+                        p2: Long,
+                        p3: java.lang.Exception?,
+                    ) {
+                        Log.d(TAG_VULT, "error: ")
+                        Log.d(TAG_VULT, "error: p0: $p0")
+                        Log.d(TAG_VULT, "error: p1: $p1")
+                        Log.d(TAG_VULT, "error: p2: $p2")
+                        Log.d(TAG_VULT, "error: p3: $p3")
+                    }
 
-                        override fun inProgress(
-                            p0: String?,
-                            p1: String?,
-                            p2: Long,
-                            p3: Long,
-                            p4: ByteArray?,
-                        ) {
-                            Log.d(TAG_VULT, "inProgress: ")
-                            Log.d(TAG_VULT, "inProgress: p0: $p0")
-                            Log.d(TAG_VULT, "inProgress: p1: $p1")
-                            Log.d(TAG_VULT, "inProgress: p2: $p2")
-                            Log.d(TAG_VULT, "inProgress: p3: $p3")
-                            Log.d(TAG_VULT, "inProgress: p4: $p4")
-                        }
+                    override fun inProgress(
+                        p0: String?,
+                        p1: String?,
+                        p2: Long,
+                        p3: Long,
+                        p4: ByteArray?,
+                    ) {
+                        Log.d(TAG_VULT, "inProgress: ")
+                        Log.d(TAG_VULT, "inProgress: p0: $p0")
+                        Log.d(TAG_VULT, "inProgress: p1: $p1")
+                        Log.d(TAG_VULT, "inProgress: p2: $p2")
+                        Log.d(TAG_VULT, "inProgress: p3: $p3")
+                        Log.d(TAG_VULT, "inProgress: p4: $p4")
+                    }
 
-                        override fun repairCompleted(p0: Long) {
-                            Log.d(TAG_VULT, "repairCompleted: ")
-                            Log.d(TAG_VULT, "repairCompleted: p0: $p0")
-                        }
+                    override fun repairCompleted(p0: Long) {
+                        Log.d(TAG_VULT, "repairCompleted: ")
+                        Log.d(TAG_VULT, "repairCompleted: p0: $p0")
+                    }
 
-                        override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
-                            Snackbar.make(
-                                binding.root,
-                                "Downloading ${vultViewModel.files.value!![filePosition].name}",
-                                Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                    })
-
-            }
+                    override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+                        Snackbar.make(
+                            binding.root,
+                            "Downloading ${vultViewModel.files.value!![filePosition].name}",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                })
         }
     }
 

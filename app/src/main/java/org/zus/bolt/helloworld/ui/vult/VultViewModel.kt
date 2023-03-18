@@ -25,16 +25,17 @@ class VultViewModel : ViewModel() {
     var totalStorageUsed = MutableLiveData<Long>()
 
     companion object {
-        fun initZboxStorageSDK(config: String, walletJSON: String): StorageSDK =
-            try {
-                Sdk.init(config)
-                Log.i(TAG_VULT, "initZboxStorageSDK: sdk initialized successfully")
-                Sdk.initStorageSDK(walletJSON, config)
-            } catch (e: Exception) {
-                Log.e(TAG_VULT, "initZboxStorageSDK Exception: ", e)
-                StorageSDK()
+        suspend fun initZboxStorageSDK(config: String, walletJSON: String): StorageSDK =
+            withContext(Dispatchers.IO) {
+                return@withContext try {
+                    Sdk.init(config)
+                    Log.i(TAG_VULT, "initZboxStorageSDK: sdk initialized successfully")
+                    Sdk.initStorageSDK(walletJSON, config)
+                } catch (e: Exception) {
+                    Log.e(TAG_VULT, "initZboxStorageSDK Exception: ", e)
+                    StorageSDK()
+                }
             }
-
     }
 
     /**
