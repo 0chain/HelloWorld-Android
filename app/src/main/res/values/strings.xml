@@ -32,6 +32,7 @@
     <string name="faucet">Faucet</string>
     <string name="recent_transactions">Recent Transactions</string>
     <string name="transaction_list_item">%1$d. %2$s... %3$s</string>
+    <string name="transaction_list_item_date">%1$s</string>
     <string name="enter_client_id_of_receiver">Enter Client Id of Receiver</string>
     <string name="enter_amount">Enter amount</string>
     <string name="receiver_client_id_">Receiver Client ID</string>

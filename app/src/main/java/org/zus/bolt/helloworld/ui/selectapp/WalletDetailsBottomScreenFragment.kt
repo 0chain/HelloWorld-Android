@@ -25,9 +25,9 @@ class WalletDetailsBottomScreenFragment(
 
         val walletDetails: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>()
             .apply {
-                add(Pair("ClientID:", walletModel.mClientId))
-                add(Pair("Public Encryption Key:", walletModel.mKeys[0].mPublicKey))
-                add(Pair("Wallet JSON:", walletModel.walletJson))
+                add(Pair("ClientID", walletModel.mClientId))
+                add(Pair("Public Encryption Key", walletModel.mKeys[0].mPublicKey))
+                add(Pair("Wallet JSON", walletModel.walletJson))
             }
 
 

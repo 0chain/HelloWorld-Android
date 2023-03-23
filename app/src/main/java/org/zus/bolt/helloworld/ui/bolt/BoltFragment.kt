@@ -8,9 +8,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBindings
 import com.google.android.material.textfield.TextInputLayout
@@ -28,7 +31,7 @@ class BoltFragment : Fragment() {
     private lateinit var binding: BoltFragmentBinding
     private lateinit var mainViewModel: MainViewModel
     private lateinit var boltViewModel: BoltViewModel
-
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -42,7 +45,31 @@ class BoltFragment : Fragment() {
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
 
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (boltViewModel.isRefreshLiveData.value != true) {
+                    findNavController().popBackStack()
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            onBackPressedCallback
+        )
+
         boltViewModel.isRefreshLiveData.observe(viewLifecycleOwner) { isRefresh ->
+            if (!isRefresh) {
+                requireActivity().runOnUiThread {
+                    requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+                }
+            } else {
+                requireActivity().runOnUiThread {
+                    requireActivity().window.setFlags(
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                    )
+                }
+            }
             binding.swipeRefresh.isRefreshing = isRefresh
         }
 
@@ -67,8 +94,12 @@ class BoltFragment : Fragment() {
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
             CoroutineScope(Dispatchers.IO).launch {
                 val dollar = Zcncore.convertTokenToUSD(balance.toDouble())
-                requireActivity().runOnUiThread {
-                    binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
+                try {
+                    requireActivity().runOnUiThread {
+                        binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG_BOLT, "onCreateView: ${e.message}")
                 }
             }
         }

@@ -46,6 +46,17 @@ class Utils(private var applicationContext: Context) {
             }
         }
 
+        fun Long.getConvertedTime(): String {
+            val s = this
+            return try {
+                val sdf = SimpleDateFormat("HH:mm", Locale.ENGLISH)
+                val netDate = Date(s * 1000L)
+                sdf.format(netDate)
+            } catch (e: Exception) {
+                e.toString()
+            }
+        }
+
         fun Int.getConvertedSize(): String {
             val size = this
             val gb = 1024 * 1024 * 1024

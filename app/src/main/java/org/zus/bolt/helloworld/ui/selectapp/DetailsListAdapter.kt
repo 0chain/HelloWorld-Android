@@ -75,14 +75,6 @@ class DetailsListAdapter(
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val rowDetailsBinding = RowDetailsBinding.inflate(LayoutInflater.from(parent?.context))
         rowDetailsBinding.tvDetailTitle.text = detailsList[position].first
-        rowDetailsBinding.tvDetailValue.text =
-            detailsList[position].second.getShortFormattedString()
-        rowDetailsBinding.tvDetailValue.setAutoSizeTextTypeUniformWithConfiguration(
-            8,
-            20,
-            1,
-            TypedValue.COMPLEX_UNIT_SP
-        )
 
         rowDetailsBinding.root.setOnClickListener {
             Log.i(TAG_CREATE_WALLET, "clicking on the dialog button")

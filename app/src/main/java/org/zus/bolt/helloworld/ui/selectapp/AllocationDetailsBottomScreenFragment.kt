@@ -28,10 +28,10 @@ class AllocationDetailsBottomScreenFragment(
 
         val allocationDetails: MutableList<Pair<String, String>> =
             mutableListOf<Pair<String, String>>().apply {
-                add(Pair("Allocation ID:", allocationModel[0].id))
-                add(Pair("Name:", allocationModel[0].name))
-                add(Pair("Expiration:", allocationModel[0].expirationDate.getConvertedDateTime()))
-                add(Pair("Size:", allocationModel[0].size.getConvertedSize()))
+                add(Pair("Allocation ID", allocationModel[0].id))
+                add(Pair("Name", allocationModel[0].name))
+                add(Pair("Expiration", allocationModel[0].expirationDate.getConvertedDateTime()))
+                add(Pair("Size", allocationModel[0].size.getConvertedSize()))
             }
 
         val linearArrayAdapter = DetailsListAdapter(requireActivity(), allocationDetails)
