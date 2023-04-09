@@ -49,7 +49,7 @@ class Utils(private var applicationContext: Context) {
         fun Long.getConvertedTime(): String {
             val s = this
             return try {
-                val sdf = SimpleDateFormat("HH:mm", Locale.ENGLISH)
+                val sdf = SimpleDateFormat("dd/MM, HH:mm", Locale.ENGLISH)
                 val netDate = Date(s * 1000L)
                 sdf.format(netDate)
             } catch (e: Exception) {

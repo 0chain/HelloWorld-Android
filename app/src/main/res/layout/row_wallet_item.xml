@@ -26,11 +26,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_copy_hash"
             android:layout_width="wrap_content"
+            android:scaleType="center"
             android:layout_height="wrap_content"
-            android:text="Copy"
+            android:layout_marginStart="3dp"
+            android:background="@color/cardview_shadow_end_color"
+            android:src="@drawable/ic_copy"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/tv_date_time"
             app:layout_constraintHorizontal_bias="0.5"
@@ -50,7 +53,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/button"
+            app:layout_constraintStart_toEndOf="@+id/btn_copy_hash"
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.Guideline
