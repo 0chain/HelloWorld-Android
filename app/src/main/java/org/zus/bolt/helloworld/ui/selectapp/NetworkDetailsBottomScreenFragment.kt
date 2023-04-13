@@ -1,7 +1,5 @@
 package org.zus.bolt.helloworld.ui.selectapp
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +8,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBinding
+import org.zus.bolt.helloworld.databinding.RowDetailsListItemBinding
 import org.zus.bolt.helloworld.models.NetworkModel
+import org.zus.bolt.helloworld.models.selectapp.DetailsListModel
+import org.zus.bolt.helloworld.models.selectapp.DetailsModel
 import org.zus.bolt.helloworld.utils.Utils
 
 class NetworkDetailsBottomScreenFragment : BottomSheetDialogFragment() {
@@ -31,33 +32,61 @@ class NetworkDetailsBottomScreenFragment : BottomSheetDialogFragment() {
             NetworkModel::class.java
         )
 
-        val networkDetails: MutableList<Pair<String, String>> =
-            mutableListOf<Pair<String, String>>().apply {
-                add(Pair("Network Name", networkModel.domainUrl))
-                add(Pair("Network Url", networkModel.config.blockWorker))
-                add(Pair("0box Url", networkModel.zboxUrl))
-            }
-        val linearArrayAdapter = DetailsListAdapter(requireActivity(), networkDetails)
+        val networkDetailsModel = DetailsListModel(
+            title = getString(R.string.network_details_title),
+            detailsList = listOf(
+                DetailsModel(
+                    title = "Network Name",
+                    value = networkModel.domainUrl,
+                    showArrowButton = false
+                ),
+                DetailsModel(
+                    title = "Network Url",
+                    value = networkModel.config.blockWorker,
+                    showArrowButton = false
+                ),
+                DetailsModel(
+                    title = "0box Url",
+                    value = networkModel.zboxUrl,
+                    showArrowButton = false
+                )
+            )
+        )
 
-        binding.detailsListView.adapter = linearArrayAdapter
+        val url = DetailsListModel(
+            title = "",
+            detailsList = listOf(
+                DetailsModel(
+                    title = networkModel.config.blockWorker,
+                    value = networkModel.config.blockWorker,
+                    showArrowButton = false
+                )
+            )
+        )
+
+
+        val networkDetails = listOf(
+            networkDetailsModel,
+            url
+        )
+
+        binding.detailsListView.removeAllViews()
+
+        for (detailsModel in networkDetails) {
+            val rowDetailsListItemBindings = RowDetailsListItemBinding.inflate(
+                LayoutInflater.from(requireActivity()),
+                binding.detailsListView,
+                false
+            )
+            rowDetailsListItemBindings.tvDetails.text = detailsModel.title
+            rowDetailsListItemBindings.detailsListView.adapter = DetailsListAdapter(
+                requireActivity(),
+                detailsModel.detailsList
+            )
+
+            binding.detailsListView.addView(rowDetailsListItemBindings.root)
+        }
 
         return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        //TOdo: add click listaeresn for network urls.
-        /*binding.detailsListView.getChildAt(2).setOnClickListener {
-            openUrl(networkModel.zboxUrl)
-        }
-        binding.detailsListView.getChildAt(3).setOnClickListener {
-            openUrl(networkModel.config.blockWorker)
-        }*/
-    }
-
-    private fun openUrl(url: String) {
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(browserIntent)
     }
 }

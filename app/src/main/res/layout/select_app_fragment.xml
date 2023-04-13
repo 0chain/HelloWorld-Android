@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/website_zus_color"
     android:orientation="vertical"
-    android:weightSum="1"
     tools:context=".ui.selectapp.SelectAppFragment">
 
     <ImageView
@@ -18,8 +17,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.2345"
+        android:layout_height="wrap_content"
         android:minHeight="70dp"
         android:orientation="horizontal"
         android:weightSum="3">
@@ -46,9 +44,12 @@
                 android:paddingVertical="20dp">
 
                 <ImageView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="10dp"
+                    android:background="@drawable/background_icon"
+                    android:scaleType="centerInside"
                     android:src="@drawable/ic_wallet" />
 
                 <TextView
@@ -86,7 +87,11 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_allocation_details" />
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/background_icon"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_allocation" />
 
                 <TextView
                     style="@style/CardTextView"
@@ -121,9 +126,12 @@
                 android:paddingVertical="20dp">
 
                 <ImageView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="10dp"
+                    android:background="@drawable/background_icon"
+                    android:scaleType="centerInside"
                     android:src="@drawable/ic_network" />
 
                 <TextView
@@ -138,47 +146,58 @@
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_vult"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.3456789"
-        android:clickable="true"
-        android:focusable="true"
-        app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="5dp"
-        app:cardUseCompatPadding="true">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:orientation="horizontal">
 
-        <ImageView
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cv_bolt"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingHorizontal="50dp"
-            android:paddingVertical="30dp"
-            android:src="@drawable/ic_vult_logo" />
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_bolt"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.3456789"
-        android:clickable="true"
-        android:focusable="true"
-        app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="5dp"
-        app:cardUseCompatPadding="true">
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="140dp"
+            app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="5dp"
+            app:cardUseCompatPadding="true">
 
 
-        <ImageView
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:paddingHorizontal="40dp"
+                android:paddingVertical="20dp"
+                android:src="@drawable/ic_bolt_logo" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cv_vult"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:paddingHorizontal="50dp"
-            android:paddingVertical="30dp"
-            android:src="@drawable/ic_bolt_logo" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="140dp"
+            app:cardBackgroundColor="@color/website_zus_color_variant_card_view"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="5dp"
+            app:cardUseCompatPadding="true">
 
-    </com.google.android.material.card.MaterialCardView>
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="40dp"
+                android:paddingTop="40dp"
+                android:paddingBottom="20dp"
+                android:src="@drawable/ic_vult_logo" />
+
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 </LinearLayout>

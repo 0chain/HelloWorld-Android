@@ -19,4 +19,5 @@
     <color name="website_zus_color_variant_card_view">#1E2E58</color>
     <color name="status_bar_color">@color/website_zus_color_variant</color>
     <color name="color_url">#4B79DB</color>
+    <color name="details_list_view_background">@color/website_zus_color</color>
 </resources>

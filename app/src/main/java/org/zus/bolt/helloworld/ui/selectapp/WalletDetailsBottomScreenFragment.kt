@@ -7,8 +7,11 @@ import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.databinding.GenericBottomSheetDetailsFragmentBinding
+import org.zus.bolt.helloworld.databinding.RowDetailsListItemBinding
 import org.zus.bolt.helloworld.models.bolt.WalletModel
-import org.zus.bolt.helloworld.utils.Utils.Companion.getShortFormattedString
+import org.zus.bolt.helloworld.models.selectapp.DetailsListModel
+import org.zus.bolt.helloworld.models.selectapp.DetailsModel
+import org.zus.bolt.helloworld.utils.Utils.Companion.prettyJsonFormat
 
 class WalletDetailsBottomScreenFragment(
     private val walletModel: WalletModel,
@@ -23,18 +26,61 @@ class WalletDetailsBottomScreenFragment(
 
         binding.tvPageTitle.text = getString(R.string.wallet_details_title)
 
-        val walletDetails: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>()
-            .apply {
-                add(Pair("ClientID", walletModel.mClientId))
-                add(Pair("Public Encryption Key", walletModel.mKeys[0].mPublicKey))
-                add(Pair("Wallet JSON", walletModel.walletJson))
-            }
+        val walletDetailsListModel = DetailsListModel(
+            title = getString(R.string.details),
+            detailsList = listOf(
+                DetailsModel(
+                    title = "ClientID",
+                    value = walletModel.mClientId,
+                    showArrowButton = true
+                ),
+                DetailsModel(
+                    title = "Private Encryption Key",
+                    value = walletModel.mKeys[0].mPrivateKey,
+                    showArrowButton = true
+                ),
+                DetailsModel(
+                    title = "Public Encryption Key",
+                    value = walletModel.mKeys[0].mPublicKey,
+                    showArrowButton = true
+                ),
+                DetailsModel(
+                    title = "Mnemonics",
+                    value = walletModel.mMnemonics,
+                    showArrowButton = true
+                )
+            )
+        )
+        val walletJsonModel = DetailsListModel(
+            title = getString(R.string.wallet_json_title),
+            detailsList = listOf(
+                DetailsModel(
+                    title = walletModel.walletJson.prettyJsonFormat(),
+                    value = walletModel.walletJson,
+                    showArrowButton = false
+                )
+            )
+        )
 
-
+        val detailsListModel = listOf(walletDetailsListModel, walletJsonModel)
         //linear layout adapter
-        val linearArrayAdapter = DetailsListAdapter(requireActivity(), walletDetails)
 
-        binding.detailsListView.adapter = linearArrayAdapter
+        binding.detailsListView.removeAllViews()
+
+        for (detailsModel in detailsListModel) {
+            val rowDetailsListItemBindings = RowDetailsListItemBinding.inflate(
+                LayoutInflater.from(requireActivity()),
+                binding.detailsListView,
+                false
+            )
+            rowDetailsListItemBindings.tvDetails.text = detailsModel.title
+            rowDetailsListItemBindings.detailsListView.adapter = DetailsListAdapter(
+                requireActivity(),
+                detailsModel.detailsList
+            )
+
+            binding.detailsListView.addView(rowDetailsListItemBindings.root)
+        }
 
         return binding.root
     }

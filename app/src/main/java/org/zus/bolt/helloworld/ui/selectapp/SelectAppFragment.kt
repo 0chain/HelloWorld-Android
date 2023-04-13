@@ -44,7 +44,7 @@ class SelectAppFragment : Fragment() {
         binding.cvAllocationDetails.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 try {
-                    val allocationModel = vultViewModel.getAllocationModel()
+                    val allocationModel = vultViewModel.getAllocation()
                     if (allocationModel != null)
                         AllocationDetailsBottomScreenFragment(allocationModel).show(
                             parentFragmentManager,
