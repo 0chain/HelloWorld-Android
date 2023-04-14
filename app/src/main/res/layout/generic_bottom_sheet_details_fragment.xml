@@ -24,7 +24,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:divider="@color/website_zus_color"
+        android:divider="@color/website_zus_color_variant"
         android:dividerHeight="1dp"
         android:footerDividersEnabled="true"
         android:headerDividersEnabled="true"
@@ -35,7 +35,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_page_title" />
 
-    <LinearLayout
+    <!--<LinearLayout
         android:id="@+id/network_switcher_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
         <include
             android:id="@+id/network_switcher_view"
             layout="@layout/row_details_spinner" />
-    </LinearLayout>
+    </LinearLayout>-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

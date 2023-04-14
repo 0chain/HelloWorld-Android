@@ -30,8 +30,6 @@ class ZusExampleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         try {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
             // Initialize Zcncore and Sdk with chain config  at the start of the Application.
             Zcncore.init(utils.config)
             Sdk.init(utils.config)

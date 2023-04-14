@@ -90,6 +90,14 @@
 
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/zcnDollarValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:text="@string/_1_zcn_0_0001_usd" />
+
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

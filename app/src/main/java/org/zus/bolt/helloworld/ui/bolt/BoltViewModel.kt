@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.zus.bolt.helloworld.models.bolt.BalanceModel
 import org.zus.bolt.helloworld.models.bolt.TransactionModel
 import org.zus.bolt.helloworld.utils.Utils.Companion.mergeListsWithoutDuplicates
+import zcn.Zcn
 import zcncore.GetInfoCallback
 import zcncore.Transaction
 import zcncore.TransactionCallback
@@ -171,6 +172,26 @@ class BoltViewModel : ViewModel() {
                 }
             }
             return@withContext nonceGlobal
+        }
+    }
+
+    suspend fun zcnToUsd(zcn: Double): Double {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                Zcncore.convertTokenToUSD(zcn)
+            } catch (e: Exception) {
+                0.0
+            }
+        }
+    }
+
+    suspend fun tokenToUsd(token: Long): Double {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                Zcncore.convertTokenToUSD(Zcncore.convertToToken(token))
+            } catch (e: Exception) {
+                0.0
+            }
         }
     }
 }

@@ -45,6 +45,11 @@ class BoltFragment : Fragment() {
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
 
+        CoroutineScope(Dispatchers.Main).launch {
+            val usd = boltViewModel.zcnToUsd(1.0)
+            binding.zcnDollarValue.text = getString(R.string._1_zcn_0_0001_usd, 1.0, usd)
+        }
+
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (boltViewModel.isRefreshLiveData.value != true) {
@@ -82,7 +87,8 @@ class BoltFragment : Fragment() {
         }
 
 /* Setting the adapters. */
-        val transactionsAdapter = TransactionsAdapter(requireContext(), listOf())
+        val transactionsAdapter =
+            TransactionsAdapter(requireContext(), childFragmentManager, listOf())
         binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTransactions.adapter = transactionsAdapter
 
@@ -92,12 +98,10 @@ class BoltFragment : Fragment() {
         }
         boltViewModel.balanceLiveData.observe(viewLifecycleOwner) { balance ->
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
-            CoroutineScope(Dispatchers.IO).launch {
-                val dollar = Zcncore.convertTokenToUSD(balance.toDouble())
+            CoroutineScope(Dispatchers.Main).launch {
+                val dollar = boltViewModel.zcnToUsd(balance.toDouble())
                 try {
-                    requireActivity().runOnUiThread {
-                        binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
-                    }
+                    binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
                 } catch (e: Exception) {
                     Log.e(TAG_BOLT, "onCreateView: ${e.message}")
                 }

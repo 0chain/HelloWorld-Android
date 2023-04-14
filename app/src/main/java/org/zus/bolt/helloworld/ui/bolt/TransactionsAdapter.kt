@@ -1,23 +1,24 @@
 package org.zus.bolt.helloworld.ui.bolt
 
+import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import org.zus.bolt.helloworld.R
 import org.zus.bolt.helloworld.models.bolt.TransactionModel
-import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedDateTime
 import org.zus.bolt.helloworld.utils.Utils.Companion.getConvertedTime
 import org.zus.bolt.helloworld.utils.Utils.Companion.getShortFormattedString
 
 class TransactionsAdapter(
     var context: Context,
+    var childFragmentManager: FragmentManager,
     var transactions: List<TransactionModel>,
 ) : RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
 
@@ -78,10 +79,12 @@ class TransactionsAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            val url = "https://demo.atlus.cloud/transaction-details/${transactions[position].hash}"
-            val openUrl = Intent(Intent.ACTION_VIEW)
-            openUrl.data = android.net.Uri.parse(url)
-            context.startActivity(openUrl)
+            val transactionBottomSheetFragment =
+                TransactionBottomSheetFragment(transactions[position])
+            transactionBottomSheetFragment.show(
+                childFragmentManager,
+                "TransactionBottomSheetFragment"
+            )
         }
     }
 
