@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.gson.Gson
 import org.zus.bolt.helloworld.R
@@ -33,20 +34,20 @@ class NetworkDetailsBottomScreenFragment : BottomSheetDialogFragment() {
         )
 
         val networkDetailsModel = DetailsListModel(
-            title = getString(R.string.network_details_title),
+            title = getString(R.string.details),
             detailsList = listOf(
                 DetailsModel(
-                    title = "Network Name",
+                    title = "Name: ${networkModel.domainUrl}",
                     value = networkModel.domainUrl,
                     showArrowButton = false
                 ),
                 DetailsModel(
-                    title = "Network Url",
+                    title = "Url: ${networkModel.config.blockWorker}",
                     value = networkModel.config.blockWorker,
                     showArrowButton = false
                 ),
                 DetailsModel(
-                    title = "0box Url",
+                    title = "0box Url: ${networkModel.zboxUrl}",
                     value = networkModel.zboxUrl,
                     showArrowButton = false
                 )

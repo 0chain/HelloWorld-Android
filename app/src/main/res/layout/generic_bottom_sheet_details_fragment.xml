@@ -17,7 +17,6 @@
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <!--material text view with details.-->
 
 
     <LinearLayout
@@ -34,16 +33,29 @@
         android:scrollbars="none"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_page_title">
+        app:layout_constraintTop_toBottomOf="@+id/tv_page_title" />
 
-        <include layout="@layout/row_details_list_item" />
+    <LinearLayout
+        android:id="@+id/network_switcher_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:divider="@color/website_zus_color"
+        android:dividerHeight="1dp"
+        android:footerDividersEnabled="true"
+        android:headerDividersEnabled="true"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:scrollbars="none"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/details_list_view">
 
-        <include layout="@layout/row_details_list_item" />
-
-        <include layout="@layout/row_details_list_item" />
-
-        <include layout="@layout/row_details_list_item" />
-        />
+        <include
+            android:id="@+id/network_switcher_view"
+            layout="@layout/row_details_spinner" />
     </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

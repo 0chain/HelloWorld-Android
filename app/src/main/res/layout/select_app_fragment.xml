@@ -171,8 +171,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:paddingHorizontal="40dp"
-                android:paddingVertical="20dp"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="25dp"
+                android:scaleType="centerCrop"
                 android:src="@drawable/ic_bolt_logo" />
 
         </com.google.android.material.card.MaterialCardView>
@@ -193,9 +195,10 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingHorizontal="40dp"
-                android:paddingTop="40dp"
-                android:paddingBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="45dp"
+                android:paddingBottom="25dp"
+                android:scaleType="centerCrop"
                 android:src="@drawable/ic_vult_logo" />
 
         </com.google.android.material.card.MaterialCardView>

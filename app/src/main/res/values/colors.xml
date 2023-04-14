@@ -17,7 +17,7 @@
     <color name="website_zus_color">@color/color_background</color>
     <color name="website_zus_color_variant">@color/color_background</color>
     <color name="file_dialog_background">@color/color_bg_transaction</color>
-    <color name="website_zus_color_variant_card_view">#F1F6EB</color>
+    <color name="website_zus_color_variant_card_view">#F8F8F5</color>
     <color name="status_bar_color">@color/vult_blue</color>
     <color name="color_url">#4B79DB</color>
     <color name="details_list_view_background">@color/light_gray</color>

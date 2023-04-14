@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_marginBottom="15dp">
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_details"
@@ -27,14 +28,14 @@
         android:layout_marginHorizontal="10dp"
         android:layout_marginVertical="10dp"
         android:background="@drawable/bg_curv_white_listview"
-        android:padding="3dp"
-        app:layout_constraintCircleRadius="10dp"
         android:divider="@color/website_zus_color_variant_card_view"
         android:dividerHeight="1dp"
         android:footerDividersEnabled="true"
         android:headerDividersEnabled="true"
+        android:padding="3dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintCircleRadius="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_details"

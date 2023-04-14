@@ -40,30 +40,30 @@ class AllocationDetailsBottomScreenFragment(
             val statsModel = vultViewModel.getAllocation()?.let { vultViewModel.getStats(it.stats) }
 
             val allocationDetailsModel = DetailsListModel(
-                title = getString(R.string.allocation_details_title),
+                title = getString(R.string.details),
                 detailsList = listOf(
                     DetailsModel(
-                        title = "Allocation ID",
+                        title = "Allocation ID: ${allocationModel.id}",
                         value = allocationModel.id,
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Name",
+                        title = "Name: ${allocationModel.name}",
                         value = allocationModel.name,
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Expiration",
+                        title = "Expiration: ${allocationModel.expiration.getConvertedDateTime()}",
                         value = allocationModel.expiration.getConvertedDateTime(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Size",
+                        title = "Size: ${allocationModel.size.getConvertedSize()}",
                         value = allocationModel.size.getConvertedSize(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Used Size",
+                        title = "Used Size: ${statsModel?.used_size?.getConvertedSize() ?: "0"}",
                         value = statsModel?.used_size?.getConvertedSize() ?: "0",
                         showArrowButton = false
                     )
@@ -74,32 +74,32 @@ class AllocationDetailsBottomScreenFragment(
                 title = getString(R.string.shards_and_challenges_details_title),
                 detailsList = listOf(
                     DetailsModel(
-                        title = "Data Shards",
+                        title = "Data Shards: ${allocationModel.dataShards}",
                         value = allocationModel.dataShards.toString(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Parity Shards",
+                        title = "Parity Shards: ${allocationModel.parityShards}",
                         value = allocationModel.parityShards.toString(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Number of Writes",
+                        title = "Number of Writes: ${statsModel?.num_of_writes ?: 0}",
                         value = statsModel?.num_of_writes.toString(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Number of Reads",
+                        title = "Number of Reads: ${statsModel?.num_of_reads ?: 0}",
                         value = statsModel?.num_of_reads.toString(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Number of Challenges",
+                        title = "Number of Challenges: ${statsModel?.num_success_challenges ?: 0}",
                         value = statsModel?.num_success_challenges.toString(),
                         showArrowButton = false
                     ),
                     DetailsModel(
-                        title = "Latest Closed Challenge",
+                        title = "Latest Closed Challenge: ${statsModel?.latest_closed_challenge ?: "No value provided"}",
                         value = statsModel?.latest_closed_challenge ?: "No value provided",
                         showArrowButton = false
                     )
