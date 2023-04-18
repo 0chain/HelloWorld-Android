@@ -93,6 +93,6 @@
     <string name="copy">Copy</string>
     <string name="shards_and_challenges_details_title">Shards and Challenges</string>
     <string name="select_network">Select Network</string>
-    <string name="_1_zcn_0_0001_usd">%1$f ZCN = $ %2$f</string>
+    <string name="_1_zcn_0_0001_usd">%1$.04f ZCN = $ %2$.04f</string>
     <string name="transaction_details">Transaction Details</string>
 </resources>
