@@ -12,6 +12,7 @@ import android.util.Log
 import android.webkit.URLUtil
 import androidx.core.database.getStringOrNull
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.json.JSONException
 import org.json.JSONObject
 import org.zus.bolt.helloworld.models.bolt.TransactionModel
@@ -39,6 +40,17 @@ class Utils(private var applicationContext: Context) {
             val s = this
             return try {
                 val sdf = SimpleDateFormat("dd/MM 'at' HH:mm:ss", Locale.ENGLISH)
+                val netDate = Date(s * 1000L)
+                sdf.format(netDate)
+            } catch (e: Exception) {
+                e.toString()
+            }
+        }
+
+        fun Long.getConvertedTime(): String {
+            val s = this
+            return try {
+                val sdf = SimpleDateFormat("dd/MM, HH:mm", Locale.ENGLISH)
                 val netDate = Date(s * 1000L)
                 sdf.format(netDate)
             } catch (e: Exception) {
@@ -138,6 +150,19 @@ class Utils(private var applicationContext: Context) {
                 it.creation_date
             }
             return list
+        }
+
+        fun String.prettyJsonFormat(): String {
+            val string = this
+            return try {
+                GsonBuilder().setPrettyPrinting().create().toJson(
+                    Gson().fromJson(string, Any::class.java)
+                )
+            } catch (e: JSONException) {
+                Log.e(TAG_CREATE_WALLET, "isValidJson: Exception", e)
+                Log.e(TAG_CREATE_WALLET, "json string $this")
+                string
+            }
         }
     }
 

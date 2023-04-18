@@ -15,12 +15,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +50,8 @@ class VultFragment : Fragment(), FileClickListener {
     private lateinit var vultViewModel: VultViewModel
     private lateinit var mainViewModel: MainViewModel
     var downloadPath = ""
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,6 +64,18 @@ class VultFragment : Fragment(), FileClickListener {
 
         downloadPath =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!binding.swipeRefreshLayout.isRefreshing) {
+                    findNavController().popBackStack()
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            onBackPressedCallback
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             isRefresh(true)
@@ -87,27 +104,25 @@ class VultFragment : Fragment(), FileClickListener {
                         throw Exception("Allocation id is null")
                     } else {
                         val statsModel = vultViewModel.getStats(allocation.stats)
-                        requireActivity().runOnUiThread {
-                            binding.allocationProgressView.progress =
-                                (100 * statsModel.used_size / allocation.size).toInt()
-                            binding.tvAllocationDate.text =
-                                allocation.expiration.getConvertedDateTime()
-                            binding.tvStorageUsed.text = getString(
-                                R.string.storage_used,
-                                statsModel.used_size.getConvertedSize(),
-                                allocation.size.getConvertedSize()
-                            )
-                            vultViewModel.totalStorageUsed.observe(viewLifecycleOwner) { totalStorageUsed ->
-                                if (totalStorageUsed != null) {
-                                    binding.tvStorageUsed.text =
-                                        getString(
-                                            R.string.storage_used,
-                                            totalStorageUsed.getConvertedSize(),
-                                            allocation.size.getConvertedSize()
-                                        )
-                                    binding.allocationProgressView.progress =
-                                        (100 * totalStorageUsed / allocation.size).toInt()
-                                }
+                        binding.allocationProgressView.progress =
+                            (100 * statsModel.used_size / allocation.size).toInt()
+                        binding.tvAllocationDate.text =
+                            allocation.expiration.getConvertedDateTime()
+                        binding.tvStorageUsed.text = getString(
+                            R.string.storage_used,
+                            statsModel.used_size.getConvertedSize(),
+                            allocation.size.getConvertedSize()
+                        )
+                        vultViewModel.totalStorageUsed.observe(viewLifecycleOwner) { totalStorageUsed ->
+                            if (totalStorageUsed != null) {
+                                binding.tvStorageUsed.text =
+                                    getString(
+                                        R.string.storage_used,
+                                        totalStorageUsed.getConvertedSize(),
+                                        allocation.size.getConvertedSize()
+                                    )
+                                binding.allocationProgressView.progress =
+                                    (100 * totalStorageUsed / allocation.size).toInt()
                             }
                         }
                     }
@@ -216,11 +231,9 @@ class VultFragment : Fragment(), FileClickListener {
     }
 
     private fun updateTotalSizeProgress() {
-        requireActivity().runOnUiThread {
-            binding.allocationProgressView.progress = 0
-            binding.tvAllocationDate.text = getString(R.string.no_allocation)
-            binding.tvStorageUsed.text = getString(R.string.no_allocation)
-        }
+        binding.allocationProgressView.progress = 0
+        binding.tvAllocationDate.text = getString(R.string.no_allocation)
+        binding.tvStorageUsed.text = getString(R.string.no_allocation)
     }
 
     private fun makeFileCopyInCacheDir(contentUri: Uri): String? {
@@ -279,7 +292,21 @@ class VultFragment : Fragment(), FileClickListener {
     }
 
     private fun isRefresh(bool: Boolean) {
-        binding.swipeRefreshLayout.isRefreshing = bool
+        if (!bool) {
+            requireActivity().runOnUiThread {
+                requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            }
+        } else {
+            requireActivity().runOnUiThread {
+                requireActivity().window.setFlags(
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                )
+            }
+        }
+        requireActivity().runOnUiThread {
+            binding.swipeRefreshLayout.isRefreshing = bool
+        }
     }
 
     override fun onShareLongPressFileClickListener(position: Int) {
@@ -393,6 +420,7 @@ class VultFragment : Fragment(), FileClickListener {
                         Log.d(TAG_VULT, "error: p1: $p1")
                         Log.d(TAG_VULT, "error: p2: $p2")
                         Log.d(TAG_VULT, "error: p3: $p3")
+                        isRefresh(false)
                     }
 
                     override fun inProgress(
@@ -423,6 +451,7 @@ class VultFragment : Fragment(), FileClickListener {
                         ).show()
                     }
                 })
+            isRefresh(false)
         }
     }
 
@@ -502,6 +531,7 @@ class VultFragment : Fragment(), FileClickListener {
                         "Error: ${p3?.message}",
                 Snackbar.LENGTH_SHORT
             ).show()
+            isRefresh(false)
         }
 
         override fun inProgress(p0: String?, p1: String?, p2: Long, p3: Long, p4: ByteArray?) {
