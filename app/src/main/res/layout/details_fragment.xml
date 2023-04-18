@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginHorizontal="10dp"
+    android:background="@color/website_zus_color"
     android:layout_marginVertical="20dp"
     tools:context=".ui.selectapp.DetailsBottomSheetFragment">
 
@@ -12,6 +13,7 @@
         android:id="@+id/header"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
