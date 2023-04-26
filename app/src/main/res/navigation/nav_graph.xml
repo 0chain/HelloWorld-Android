@@ -6,7 +6,7 @@
     app:startDestination="@id/createWalletFragment">
     <fragment
         android:id="@+id/createWalletFragment"
-        android:name="org.zus.bolt.helloworld.ui.CreateWalletFragment"
+        android:name="org.zus.helloworld.ui.CreateWalletFragment"
         android:label="@string/label_create_wallet"
         tools:layout="@layout/create_wallet_fragment">
         <action
@@ -20,17 +20,17 @@
     </fragment>
     <fragment
         android:id="@+id/boltFragment"
-        android:name="org.zus.bolt.helloworld.ui.bolt.BoltFragment"
+        android:name="org.zus.helloworld.ui.bolt.BoltFragment"
         android:label="@string/label_bolt_fragment"
         tools:layout="@layout/bolt_fragment" />
     <fragment
         android:id="@+id/vultFragment"
-        android:name="org.zus.bolt.helloworld.ui.vult.VultFragment"
+        android:name="org.zus.helloworld.ui.vult.VultFragment"
         android:label="@string/label_vult_fragment"
         tools:layout="@layout/vult_fragment" />
     <fragment
         android:id="@+id/selectAppFragment"
-        android:name="org.zus.bolt.helloworld.ui.selectapp.SelectAppFragment"
+        android:name="org.zus.helloworld.ui.selectapp.SelectAppFragment"
         android:label="@string/label_select_app_fragment"
         tools:layout="@layout/select_app_fragment">
         <action

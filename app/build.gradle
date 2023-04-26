@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'org.zus.bolt.helloworld'
+    namespace 'org.zus.helloworld'
     compileSdk 33
 
     defaultConfig {
-        applicationId "org.zus.bolt.helloworld"
+        applicationId "org.zus.helloworld"
         minSdk 21
         targetSdk 33
         versionCode 1
