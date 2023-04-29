@@ -40,7 +40,7 @@ class BoltFragment : Fragment() {
         binding = BoltFragmentBinding.inflate(inflater, container, false)
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         boltViewModel = ViewModelProvider(this)[BoltViewModel::class.java]
-
+        binding.zcnDollarValue.text = getString(R.string._1_zcn_0_0001_usd, 0.0, 0.0)
 
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
@@ -81,12 +81,13 @@ class BoltFragment : Fragment() {
         CoroutineScope(Dispatchers.Main).launch {
             val calls = async {
                 updateBalance()
+                delay(1500)
                 updateTransactions()
             }
             awaitAll(calls)
         }
 
-/* Setting the adapters. */
+        /* Setting the adapters. */
         val transactionsAdapter =
             TransactionsAdapter(requireContext(), childFragmentManager, listOf())
         binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
@@ -115,6 +116,7 @@ class BoltFragment : Fragment() {
                 boltViewModel.receiveFaucet()
                 val calls = async {
                     updateBalance()
+                    delay(1500)
                     updateTransactions()
                 }
                 awaitAll(calls)
@@ -185,8 +187,9 @@ class BoltFragment : Fragment() {
         binding.swipeRefresh.setOnRefreshListener {
             CoroutineScope(Dispatchers.Main).launch {
                 val calls = async {
-                    updateTransactions()
                     updateBalance()
+                    delay(1500)
+                    updateTransactions()
                 }
                 awaitAll(calls)
             }

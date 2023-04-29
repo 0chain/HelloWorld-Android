@@ -3,8 +3,11 @@ package org.zus.helloworld.ui.bolt
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.zus.helloworld.models.bolt.BalanceModel
 import org.zus.helloworld.models.bolt.TransactionModel
@@ -39,6 +42,10 @@ class BoltViewModel : ViewModel() {
         override fun onTransactionComplete(transaction: Transaction?, status: Long) {
             // confirmation of successful transaction.
             isRefreshLiveData.postValue(false)
+            viewModelScope.launch {
+                delay(1500)
+                getWalletBalance()
+            }
             if (status == 0L) {
                 // Successful status of the transaction.
             }
@@ -136,12 +143,11 @@ class BoltViewModel : ViewModel() {
             Zcncore.getTransactions(
                 toClientId,
                 fromClientId,
-/*block hash optional =*/"",
+                /*block hash optional =*/"",
                 sortOrder,
                 limit,
                 offset
             ) { _, _, json, error ->
-                isRefreshLiveData.postValue(false)
                 if (error.isEmpty() && !json.isNullOrBlank() && json.isNotEmpty()) {
                     val transactions = Gson().fromJson(json, Array<TransactionModel>::class.java)
                         ?: return@getTransactions
@@ -150,8 +156,10 @@ class BoltViewModel : ViewModel() {
                             this@BoltViewModel.transactionsLiveData.value ?: listOf()
                         )
                     )
+                    isRefreshLiveData.postValue(false)
                 } else {
                     Log.e(TAG_BOLT, "getTransactions: $error")
+                    isRefreshLiveData.postValue(false)
                 }
             }
         }
@@ -175,22 +183,67 @@ class BoltViewModel : ViewModel() {
         }
     }
 
+    /**
+     *   Converts the zcn value to usd.
+     *   zcn in double format is like 1.0 ZCN
+     */
     suspend fun zcnToUsd(zcn: Double): Double {
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 Zcncore.convertTokenToUSD(zcn)
             } catch (e: Exception) {
+                Log.e(TAG_BOLT, "zcnToUsd: $e")
                 0.0
             }
         }
     }
 
+    /**
+     *  Converts the zcn token value in long format to usd.
+     *  zcn in long format is like 1000000000000000
+     *
+     *  In order to represent the smallest values and transactions possible in the network,
+     *  zcn is represented in long format at the base level.
+     */
     suspend fun tokenToUsd(token: Long): Double {
         return withContext(Dispatchers.IO) {
             return@withContext try {
                 Zcncore.convertTokenToUSD(Zcncore.convertToToken(token))
             } catch (e: Exception) {
                 0.0
+            }
+        }
+    }
+
+    /**
+     *  Converts the zcn token value in long format to double format.
+     *  zcn in long format is like 1000000000000000
+     *
+     *  In order to represent the smallest values and transactions possible in the network,
+     *  zcn is represented in long format at the base level.
+     */
+    suspend fun tokenLongToZcnFormat(token: Long): Double {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                Zcncore.convertToToken(token)
+            } catch (e: Exception) {
+                Log.e(TAG_BOLT, "tokenLongToZcnFormat: $e")
+                0.0
+            }
+        }
+    }
+
+    /**
+     *  Converts the zcn token value in double format to long format.
+     *  zcn in double format is like 1.0 ZCN
+     */
+    suspend fun zcnToTokenLongFormat(zcn: Double): Long {
+        return withContext(Dispatchers.IO) {
+            return@withContext try {
+                Zcncore.convertToValue(zcn).toLong()
+            } catch (e: Exception) {
+                Log.e(TAG_BOLT, "zcnToTokenLongFormat: $e")
+                0L
             }
         }
     }
