@@ -206,7 +206,9 @@ class BoltFragment : Fragment() {
             limit = 20,
             offset = 0
         )
+
         delay(1500)
+
         boltViewModel.getTransactions(
             fromClientId = mainViewModel.wallet?.mClientId ?: "",
             toClientId = "",
