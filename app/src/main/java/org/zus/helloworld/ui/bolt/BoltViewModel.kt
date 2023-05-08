@@ -24,6 +24,7 @@ class BoltViewModel : ViewModel() {
     val transactionsLiveData: MutableLiveData<List<TransactionModel>> = MutableLiveData()
     var balanceLiveData = MutableLiveData<String>()
     val isRefreshLiveData = MutableLiveData<Boolean>()
+    val snackbarMessageLiveData: MutableLiveData<String> = MutableLiveData()
 
     private val getInfoCallback = GetInfoCallback { p0, p1, p2, p3 ->
         isRefreshLiveData.postValue(false)
@@ -49,12 +50,17 @@ class BoltViewModel : ViewModel() {
             }
             if (status == 0L) {
                 // Successful status of the transaction.
+                snackbarMessageLiveData.postValue("Transaction Successful")
+            } else {
+                // Error status of the transaction.
+                snackbarMessageLiveData.postValue("Transaction Failed")
             }
         }
 
         override fun onVerifyComplete(p0: Transaction?, p1: Long) {
             // confirmation of successful verification of the transaction.
             isRefreshLiveData.postValue(false)
+            snackbarMessageLiveData.postValue("Transaction Verified Successfully")
         }
     }
 
@@ -66,10 +72,10 @@ class BoltViewModel : ViewModel() {
     suspend fun sendTransaction(to: String, amount: String) {
         withContext(Dispatchers.IO) {
             try {
+                isRefreshLiveData.postValue(true)
                 val transactionFee = ZcnSDK.estimateTransactionFee(amount)
                 Log.i(TAG_BOLT, "TransactionFees ==> $transactionFee")
 
-                isRefreshLiveData.postValue(true)
                 Zcncore.newTransaction(
                     transactionCallback,
                     /* gas = */ transactionFee,

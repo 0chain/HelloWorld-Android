@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBindings
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.*
@@ -77,6 +78,12 @@ class BoltFragment : Fragment() {
                 }
             }
             binding.swipeRefresh.isRefreshing = isRefresh
+        }
+
+        boltViewModel.snackbarMessageLiveData.observe(viewLifecycleOwner) { message ->
+            if (message.isNotBlank()) {
+                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+            }
         }
 
         CoroutineScope(Dispatchers.Main).launch {
