@@ -22,6 +22,7 @@ import kotlinx.coroutines.*
 import org.zus.helloworld.R
 import org.zus.helloworld.databinding.BoltFragmentBinding
 import org.zus.helloworld.ui.mainactivity.MainViewModel
+import org.zus.helloworld.utils.ZcnSDK
 import zcncore.Zcncore
 
 public const val TAG_BOLT: String = "BoltFragment"
@@ -46,7 +47,7 @@ class BoltFragment : Fragment() {
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
 
         CoroutineScope(Dispatchers.Main).launch {
-            val usd = boltViewModel.zcnToUsd(1.0)
+            val usd = ZcnSDK.zcnToUsd(1.0)
             binding.zcnDollarValue.text = getString(R.string._1_zcn_0_0001_usd, 1.0, usd)
         }
 
@@ -100,7 +101,7 @@ class BoltFragment : Fragment() {
         boltViewModel.balanceLiveData.observe(viewLifecycleOwner) { balance ->
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
             CoroutineScope(Dispatchers.Main).launch {
-                val dollar = boltViewModel.zcnToUsd(balance.toDouble())
+                val dollar = ZcnSDK.zcnToUsd(balance.toDouble())
                 try {
                     binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
                 } catch (e: Exception) {

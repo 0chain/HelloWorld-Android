@@ -12,17 +12,22 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.zus.helloworld.R
 import org.zus.helloworld.databinding.CreateWalletFragmentBinding
 import org.zus.helloworld.models.bolt.WalletModel
 import org.zus.helloworld.ui.mainactivity.MainViewModel
+import org.zus.helloworld.ui.vult.ALLOCATION_NAME
+import org.zus.helloworld.ui.vult.ALLOCATION_SIZE
+import org.zus.helloworld.ui.vult.DATA_SHARDS
+import org.zus.helloworld.ui.vult.EXPIRATION_SECONDS
+import org.zus.helloworld.ui.vult.LOCK_TOKENS
+import org.zus.helloworld.ui.vult.PARITY_SHARDS
 import org.zus.helloworld.ui.vult.VultViewModel
 import org.zus.helloworld.utils.Utils
+import org.zus.helloworld.utils.Utils.Companion.isValidJson
 import org.zus.helloworld.utils.ZcnSDK
 import zcncore.Zcncore
 import java.io.FileNotFoundException
-import java.util.*
 
 public const val TAG_CREATE_WALLET: String = "CreateWalletFragment"
 
@@ -36,13 +41,13 @@ class CreateWalletFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
+    ): View {
 
         binding = CreateWalletFragmentBinding.inflate(inflater, container, false)
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         vultViewModel = ViewModelProvider(requireActivity())[VultViewModel::class.java]
-        return binding.root
 
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,17 +59,20 @@ class CreateWalletFragment : Fragment() {
 
             Log.i(
                 TAG_CREATE_WALLET,
-                "walletJsonStringFromFile: ${walletJsonStringFromFile.isNullOrBlank()}"
+                "walletJsonStringFromFile: ${walletJsonStringFromFile.isBlank()}"
             )
             if (walletJsonStringFromFile.isBlank() || walletJsonStringFromFile.isEmpty()) {
-                Zcncore.createWallet { status, walletJson, error ->
-                    if (status == 0L) {
+                try {
+                    val walletJson = Zcncore.createWalletOffline()
+                    if (walletJson != null && walletJson.isValidJson()) {
                         Log.i(TAG_CREATE_WALLET, "New Wallet created successfully")
                         Utils(requireContext()).saveWalletAsFile(walletJson)
                         processWallet(walletJson)
                     } else {
-                        Log.e(TAG_CREATE_WALLET, "Error: $error")
+                        Log.e(TAG_CREATE_WALLET, "Error: $walletJson")
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
                 }
             } else {
                 Log.i(TAG_CREATE_WALLET, "Wallet already exists")
@@ -74,16 +82,17 @@ class CreateWalletFragment : Fragment() {
 
         } catch (e: FileNotFoundException) {
             Log.d(TAG_CREATE_WALLET, "File not found")
-            Zcncore.createWallet { status, walletJson, error ->
-                if (status == 0L) {
+            try {
+                val walletJson = Zcncore.createWalletOffline()
+                if (walletJson != null && walletJson.isValidJson()) {
                     Log.i(TAG_CREATE_WALLET, "New Wallet created successfully")
                     Utils(requireContext()).saveWalletAsFile(walletJson)
                     processWallet(walletJson)
-
-
                 } else {
-                    Log.e(TAG_CREATE_WALLET, "Error: $error")
+                    Log.e(TAG_CREATE_WALLET, "Error: $walletJson")
                 }
+            } catch (e: Exception) {
+                Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
             }
         } catch (e: Exception) {
             Log.e(TAG_CREATE_WALLET, "Error: ${e.message}", e)
@@ -97,8 +106,9 @@ class CreateWalletFragment : Fragment() {
             val wallet: WalletModel = mainViewModel.wallet!!
             Log.e(TAG_CREATE_WALLET, walletModel.mMnemonics)
             wallet.walletJson = walletJson
+            Log.i(TAG_CREATE_WALLET, "Wallet json: $walletJson")
             Zcncore.setWalletInfo(walletJson, false)
-            // ZcnSDK().readPoolLock(1.0,0.0)
+            // ZcnSDK.readPoolLock(1.0,0.0)
             CoroutineScope(Dispatchers.Main).launch {
                 binding.btCreateWallet.text = getString(R.string.creating_allocation)
 
@@ -119,7 +129,11 @@ class CreateWalletFragment : Fragment() {
                 }
 
                 if (vultViewModel.getAllocation() == null) {
-                    ZcnSDK().faucet("pour", "{Pay day}", 10.0)
+                    val walletBalance =
+                        ZcnSDK.getWalletBalance(mainViewModel.wallet?.mClientId ?: "")
+                    if (walletBalance < 10.0) {
+                        ZcnSDK.faucet("pour", "{Pay day}", 10.0)
+                    }
                     createAllocation()
                 }
                 mainViewModel.createWalletSemaphore.observe(
@@ -136,12 +150,12 @@ class CreateWalletFragment : Fragment() {
         }
     }
 
-    suspend fun createAllocation() = vultViewModel.createAllocation(
-        allocationName = "test allocation",
-        dataShards = 2,
-        parityShards = 2,
-        allocationSize = 2147483648,
-        expirationSeconds = Date().time / 1000 + 1500000,
-        lockTokens = Zcncore.convertToValue(3.0),
+    private suspend fun createAllocation() = vultViewModel.createAllocation(
+        allocationName = ALLOCATION_NAME,
+        dataShards = DATA_SHARDS,
+        parityShards = PARITY_SHARDS,
+        allocationSize = ALLOCATION_SIZE,
+        expirationSeconds = EXPIRATION_SECONDS,
+        lockTokens = LOCK_TOKENS,
     )
 }

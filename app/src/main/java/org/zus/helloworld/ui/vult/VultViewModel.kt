@@ -190,6 +190,8 @@ class VultViewModel : ViewModel() {
         fileName: String,
         filePathURI: String?,
         fileThumbnailPath: String?,
+        encryptFile: Boolean,
+        webStreaming: Boolean,
         callback: StatusCallbackMocked,
     ) {
         withContext(Dispatchers.IO) {
@@ -205,9 +207,13 @@ class VultViewModel : ViewModel() {
                     filePathURI,
                     /* remote path =*/
                     "/$fileName",
-                    /*file attrs =*/
+                    /*thumbnail path =*/
                     fileThumbnailPath,
-                    false,
+                    /* encrypt file= */
+                    encryptFile,
+                    /* webStreaming =*/
+                    webStreaming,
+                    /* StatusCallbackMocked =t*/
                     callback
                 )
             } catch (e: Exception) {

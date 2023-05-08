@@ -12,8 +12,9 @@ import kotlinx.coroutines.withContext
 import org.zus.helloworld.models.bolt.BalanceModel
 import org.zus.helloworld.models.bolt.TransactionModel
 import org.zus.helloworld.utils.Utils.Companion.mergeListsWithoutDuplicates
-import zcn.Zcn
+import org.zus.helloworld.utils.ZcnSDK
 import zcncore.GetInfoCallback
+import zcncore.RequestTimeout
 import zcncore.Transaction
 import zcncore.TransactionCallback
 import zcncore.Zcncore
@@ -64,13 +65,25 @@ class BoltViewModel : ViewModel() {
      */
     suspend fun sendTransaction(to: String, amount: String) {
         withContext(Dispatchers.IO) {
-            isRefreshLiveData.postValue(true)
-            Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
-                .send(
-                    /* receiver address = */ to,
-                    /* amount = */ Zcncore.convertToValue(amount.toDouble()).toString(),
-                    /* notes = */ "Hello world! sending tokens."
+            try {
+                val transactionFee = ZcnSDK.estimateTransactionFee(amount)
+                Log.i(TAG_BOLT, "TransactionFees ==> $transactionFee")
+
+                isRefreshLiveData.postValue(true)
+                Zcncore.newTransaction(
+                    transactionCallback,
+                    /* gas = */ transactionFee,
+                    /* nonce = */ZcnSDK.getNonce()
                 )
+                    .send(
+                        /* receiver address = */ to,
+                        /* amount = */ Zcncore.convertToValue(amount.toDouble()).toString(),
+                        /* notes = */ "Hello world! sending tokens."
+                    )
+            } catch (e: Exception) {
+                isRefreshLiveData.postValue(false)
+                print("Error: $e")
+            }
         }
     }
 
@@ -80,7 +93,11 @@ class BoltViewModel : ViewModel() {
     suspend fun receiveFaucet() {
         withContext(Dispatchers.IO) {
             isRefreshLiveData.postValue(true)
-            Zcncore.newTransaction(transactionCallback, /* gas = */ "0",/* nonce = */getNonce())
+            Zcncore.newTransaction(
+                transactionCallback,
+                /* gas = */ "0",
+                /* nonce = */ZcnSDK.getNonce()
+            )
                 .executeSmartContract(
                     /* faucet address = */ "6dba10422e368813802877a85039d3985d96760ed844092319743fb3a76712d3",
                     /* method name = */ "pour",
@@ -161,89 +178,6 @@ class BoltViewModel : ViewModel() {
                     Log.e(TAG_BOLT, "getTransactions: $error")
                     isRefreshLiveData.postValue(false)
                 }
-            }
-        }
-    }
-
-    /**
-     *  Gets the nonce for any transaction.
-     *  Nonce is a unique or randomly generated number that is used only once for a transaction.
-     */
-    private suspend fun getNonce(): Long {
-        return withContext(Dispatchers.IO) {
-            var nonceGlobal: Long = 0L
-            Zcncore.getNonce { status, nonce, error ->
-                if (status == 0L && error == null) {
-                    // nonce is a string
-                    // nonce = "0"
-                    nonceGlobal = nonce
-                }
-            }
-            return@withContext nonceGlobal
-        }
-    }
-
-    /**
-     *   Converts the zcn value to usd.
-     *   zcn in double format is like 1.0 ZCN
-     */
-    suspend fun zcnToUsd(zcn: Double): Double {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                Zcncore.convertTokenToUSD(zcn)
-            } catch (e: Exception) {
-                Log.e(TAG_BOLT, "zcnToUsd: $e")
-                0.0
-            }
-        }
-    }
-
-    /**
-     *  Converts the zcn token value in long format to usd.
-     *  zcn in long format is like 1000000000000000
-     *
-     *  In order to represent the smallest values and transactions possible in the network,
-     *  zcn is represented in long format at the base level.
-     */
-    suspend fun tokenToUsd(token: Long): Double {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                Zcncore.convertTokenToUSD(Zcncore.convertToToken(token))
-            } catch (e: Exception) {
-                0.0
-            }
-        }
-    }
-
-    /**
-     *  Converts the zcn token value in long format to double format.
-     *  zcn in long format is like 1000000000000000
-     *
-     *  In order to represent the smallest values and transactions possible in the network,
-     *  zcn is represented in long format at the base level.
-     */
-    suspend fun tokenLongToZcnFormat(token: Long): Double {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                Zcncore.convertToToken(token)
-            } catch (e: Exception) {
-                Log.e(TAG_BOLT, "tokenLongToZcnFormat: $e")
-                0.0
-            }
-        }
-    }
-
-    /**
-     *  Converts the zcn token value in double format to long format.
-     *  zcn in double format is like 1.0 ZCN
-     */
-    suspend fun zcnToTokenLongFormat(zcn: Double): Long {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                Zcncore.convertToValue(zcn).toLong()
-            } catch (e: Exception) {
-                Log.e(TAG_BOLT, "zcnToTokenLongFormat: $e")
-                0L
             }
         }
     }
