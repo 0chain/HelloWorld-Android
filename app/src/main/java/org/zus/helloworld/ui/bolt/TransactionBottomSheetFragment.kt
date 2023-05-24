@@ -12,6 +12,8 @@ import org.zus.helloworld.models.bolt.TransactionModel
 import org.zus.helloworld.models.selectapp.DetailsListModel
 import org.zus.helloworld.models.selectapp.DetailsModel
 import org.zus.helloworld.ui.selectapp.DetailsListAdapter
+import org.zus.helloworld.utils.Utils.Companion.ATLUS_BASE_URL
+import org.zus.helloworld.utils.Utils.Companion.getAtlusURL
 import org.zus.helloworld.utils.Utils.Companion.getConvertedDateTime
 
 class TransactionBottomSheetFragment(
@@ -95,9 +97,9 @@ class TransactionBottomSheetFragment(
             title = "Explorer",
             detailsList = listOf(
                 DetailsModel(
-                    title = "Explorer: https://demo.atlus.cloud/transaction-details/${transactionModel.hash}",
-                    value = "https://demo.atlus.cloud/transaction-details/${transactionModel.hash}",
-                    showArrowButton = true
+                    title = "Explorer: ${transactionModel.hash.getAtlusURL()}",
+                    value = transactionModel.hash.getAtlusURL(),
+                    showArrowButton = false
                 )
             )
         )

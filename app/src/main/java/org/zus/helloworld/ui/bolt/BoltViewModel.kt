@@ -3,13 +3,16 @@ package org.zus.helloworld.ui.bolt
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.zus.helloworld.models.bolt.BalanceModel
 import org.zus.helloworld.models.bolt.TransactionModel
 import org.zus.helloworld.utils.Utils.Companion.mergeListsWithoutDuplicates
-import zcn.Zcn
+import org.zus.helloworld.utils.ZcnSDK
 import zcncore.GetInfoCallback
 import zcncore.Transaction
 import zcncore.TransactionCallback
@@ -20,6 +23,7 @@ class BoltViewModel : ViewModel() {
     val transactionsLiveData: MutableLiveData<List<TransactionModel>> = MutableLiveData()
     var balanceLiveData = MutableLiveData<String>()
     val isRefreshLiveData = MutableLiveData<Boolean>()
+    val snackbarMessageLiveData: MutableLiveData<String> = MutableLiveData()
 
     private val getInfoCallback = GetInfoCallback { p0, p1, p2, p3 ->
         isRefreshLiveData.postValue(false)
@@ -39,14 +43,23 @@ class BoltViewModel : ViewModel() {
         override fun onTransactionComplete(transaction: Transaction?, status: Long) {
             // confirmation of successful transaction.
             isRefreshLiveData.postValue(false)
+            viewModelScope.launch {
+                delay(1500)
+                getWalletBalance()
+            }
             if (status == 0L) {
                 // Successful status of the transaction.
+                snackbarMessageLiveData.postValue("Transaction Successful")
+            } else {
+                // Error status of the transaction.
+                snackbarMessageLiveData.postValue("Transaction Failed")
             }
         }
 
         override fun onVerifyComplete(p0: Transaction?, p1: Long) {
             // confirmation of successful verification of the transaction.
             isRefreshLiveData.postValue(false)
+            snackbarMessageLiveData.postValue("Transaction Verified Successfully")
         }
     }
 
@@ -57,13 +70,25 @@ class BoltViewModel : ViewModel() {
      */
     suspend fun sendTransaction(to: String, amount: String) {
         withContext(Dispatchers.IO) {
-            isRefreshLiveData.postValue(true)
-            Zcncore.newTransaction(transactionCallback, /* gas = */ "0", /* nonce = */ getNonce())
-                .send(
-                    /* receiver address = */ to,
-                    /* amount = */ Zcncore.convertToValue(amount.toDouble()).toString(),
-                    /* notes = */ "Hello world! sending tokens."
+            try {
+                isRefreshLiveData.postValue(true)
+                val transactionFee = ZcnSDK.estimateTransactionFee()
+                Log.i(TAG_BOLT, "TransactionFees ==> $transactionFee")
+
+                Zcncore.newTransaction(
+                    transactionCallback,
+                    /* gas = */ transactionFee,
+                    /* nonce = */ZcnSDK.getNonce()
                 )
+                    .send(
+                        /* receiver address = */ to,
+                        /* amount = */ Zcncore.convertToValue(amount.toDouble()).toString(),
+                        /* notes = */ "Hello world! sending tokens."
+                    )
+            } catch (e: Exception) {
+                isRefreshLiveData.postValue(false)
+                print("Error: $e")
+            }
         }
     }
 
@@ -73,7 +98,11 @@ class BoltViewModel : ViewModel() {
     suspend fun receiveFaucet() {
         withContext(Dispatchers.IO) {
             isRefreshLiveData.postValue(true)
-            Zcncore.newTransaction(transactionCallback, /* gas = */ "0",/* nonce = */getNonce())
+            Zcncore.newTransaction(
+                transactionCallback,
+                /* gas = */ "0",
+                /* nonce = */ZcnSDK.getNonce()
+            )
                 .executeSmartContract(
                     /* faucet address = */ "6dba10422e368813802877a85039d3985d96760ed844092319743fb3a76712d3",
                     /* method name = */ "pour",
@@ -136,12 +165,11 @@ class BoltViewModel : ViewModel() {
             Zcncore.getTransactions(
                 toClientId,
                 fromClientId,
-/*block hash optional =*/"",
+                /*block hash optional =*/"",
                 sortOrder,
                 limit,
                 offset
             ) { _, _, json, error ->
-                isRefreshLiveData.postValue(false)
                 if (error.isEmpty() && !json.isNullOrBlank() && json.isNotEmpty()) {
                     val transactions = Gson().fromJson(json, Array<TransactionModel>::class.java)
                         ?: return@getTransactions
@@ -150,47 +178,11 @@ class BoltViewModel : ViewModel() {
                             this@BoltViewModel.transactionsLiveData.value ?: listOf()
                         )
                     )
+                    isRefreshLiveData.postValue(false)
                 } else {
                     Log.e(TAG_BOLT, "getTransactions: $error")
+                    isRefreshLiveData.postValue(false)
                 }
-            }
-        }
-    }
-
-    /**
-     *  Gets the nonce for any transaction.
-     *  Nonce is a unique or randomly generated number that is used only once for a transaction.
-     */
-    private suspend fun getNonce(): Long {
-        return withContext(Dispatchers.IO) {
-            var nonceGlobal: Long = 0L
-            Zcncore.getNonce { status, nonce, error ->
-                if (status == 0L && error == null) {
-                    // nonce is a string
-                    // nonce = "0"
-                    nonceGlobal = nonce
-                }
-            }
-            return@withContext nonceGlobal
-        }
-    }
-
-    suspend fun zcnToUsd(zcn: Double): Double {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                Zcncore.convertTokenToUSD(zcn)
-            } catch (e: Exception) {
-                0.0
-            }
-        }
-    }
-
-    suspend fun tokenToUsd(token: Long): Double {
-        return withContext(Dispatchers.IO) {
-            return@withContext try {
-                Zcncore.convertTokenToUSD(Zcncore.convertToToken(token))
-            } catch (e: Exception) {
-                0.0
             }
         }
     }

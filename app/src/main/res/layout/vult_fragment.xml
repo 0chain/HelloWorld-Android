@@ -66,15 +66,15 @@
                     android:id="@+id/allocation_progress_view"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
                     android:indeterminate="false"
                     android:max="100"
                     android:progress="30"
-                    android:layout_marginStart="20dp"
                     android:progressBackgroundTint="@color/color_grey"
                     app:indicatorColor="@color/vult_blue"
                     app:layout_constraintBottom_toBottomOf="@+id/tv_allocation"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/tv_allocation_date"
+                    app:layout_constraintStart_toEndOf="@+id/tv_allocation"
                     app:layout_constraintTop_toTopOf="@+id/tv_allocation"
                     app:trackThickness="10dp" />
 

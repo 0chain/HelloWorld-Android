@@ -16,12 +16,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewbinding.ViewBindings
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.*
 import org.zus.helloworld.R
 import org.zus.helloworld.databinding.BoltFragmentBinding
 import org.zus.helloworld.ui.mainactivity.MainViewModel
+import org.zus.helloworld.utils.ZcnSDK
 import zcncore.Zcncore
 
 public const val TAG_BOLT: String = "BoltFragment"
@@ -40,13 +42,13 @@ class BoltFragment : Fragment() {
         binding = BoltFragmentBinding.inflate(inflater, container, false)
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         boltViewModel = ViewModelProvider(this)[BoltViewModel::class.java]
-
+        binding.zcnDollarValue.text = getString(R.string._1_zcn_0_0001_usd, 0.0, 0.0)
 
         binding.zcnBalance.text = getString(R.string.zcn_balance, "0")
         binding.zcnDollar.text = getString(R.string.zcn_dollar, 0.0f)
 
         CoroutineScope(Dispatchers.Main).launch {
-            val usd = boltViewModel.zcnToUsd(1.0)
+            val usd = ZcnSDK.zcnToUsd(1.0)
             binding.zcnDollarValue.text = getString(R.string._1_zcn_0_0001_usd, 1.0, usd)
         }
 
@@ -78,15 +80,22 @@ class BoltFragment : Fragment() {
             binding.swipeRefresh.isRefreshing = isRefresh
         }
 
+        boltViewModel.snackbarMessageLiveData.observe(viewLifecycleOwner) { message ->
+            if (message.isNotBlank()) {
+                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+            }
+        }
+
         CoroutineScope(Dispatchers.Main).launch {
             val calls = async {
                 updateBalance()
+                delay(1500)
                 updateTransactions()
             }
             awaitAll(calls)
         }
 
-/* Setting the adapters. */
+        /* Setting the adapters. */
         val transactionsAdapter =
             TransactionsAdapter(requireContext(), childFragmentManager, listOf())
         binding.rvTransactions.layoutManager = LinearLayoutManager(requireContext())
@@ -99,7 +108,7 @@ class BoltFragment : Fragment() {
         boltViewModel.balanceLiveData.observe(viewLifecycleOwner) { balance ->
             binding.zcnBalance.text = getString(R.string.zcn_balance, balance)
             CoroutineScope(Dispatchers.Main).launch {
-                val dollar = boltViewModel.zcnToUsd(balance.toDouble())
+                val dollar = ZcnSDK.zcnToUsd(balance.toDouble())
                 try {
                     binding.zcnDollar.text = getString(R.string.zcn_dollar, dollar)
                 } catch (e: Exception) {
@@ -115,6 +124,7 @@ class BoltFragment : Fragment() {
                 boltViewModel.receiveFaucet()
                 val calls = async {
                     updateBalance()
+                    delay(1500)
                     updateTransactions()
                 }
                 awaitAll(calls)
@@ -185,8 +195,9 @@ class BoltFragment : Fragment() {
         binding.swipeRefresh.setOnRefreshListener {
             CoroutineScope(Dispatchers.Main).launch {
                 val calls = async {
-                    updateTransactions()
                     updateBalance()
+                    delay(1500)
+                    updateTransactions()
                 }
                 awaitAll(calls)
             }
@@ -203,7 +214,9 @@ class BoltFragment : Fragment() {
             limit = 20,
             offset = 0
         )
+
         delay(1500)
+
         boltViewModel.getTransactions(
             fromClientId = mainViewModel.wallet?.mClientId ?: "",
             toClientId = "",

@@ -8,7 +8,7 @@ data class AllocationModelItem(
     @SerializedName("data_shards")
     val dataShards: Int,
     @SerializedName("expiration_date")
-    val expirationDate: Int,
+    val expirationDate: Long,
     @SerializedName("id")
     val id: String,
     @SerializedName("name")

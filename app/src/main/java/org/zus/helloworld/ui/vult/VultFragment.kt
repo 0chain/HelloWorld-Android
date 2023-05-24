@@ -33,9 +33,11 @@ import kotlinx.coroutines.runBlocking
 import org.zus.helloworld.R
 import org.zus.helloworld.databinding.VultFragmentBinding
 import org.zus.helloworld.ui.mainactivity.MainViewModel
+import org.zus.helloworld.utils.StorageSizes
 import org.zus.helloworld.utils.Utils
 import org.zus.helloworld.utils.Utils.Companion.getConvertedDateTime
 import org.zus.helloworld.utils.Utils.Companion.getConvertedSize
+import org.zus.helloworld.utils.Utils.Companion.getSizeInKB
 import zbox.StatusCallbackMocked
 import zcncore.Zcncore
 import java.io.File
@@ -44,6 +46,13 @@ import java.util.*
 
 
 const val TAG_VULT = "VultFragment"
+
+const val ALLOCATION_NAME = "test allocation"
+const val DATA_SHARDS = 2L
+const val PARITY_SHARDS = 2L
+val ALLOCATION_SIZE = 2L.getSizeInKB(StorageSizes.GB)
+val EXPIRATION_SECONDS = Date().time + 1500000
+val LOCK_TOKENS: String = Zcncore.convertToValue(3.0)
 
 class VultFragment : Fragment(), FileClickListener {
     private lateinit var binding: VultFragmentBinding
@@ -89,12 +98,12 @@ class VultFragment : Fragment(), FileClickListener {
 
             if (vultViewModel.getAllocation() == null) {
                 vultViewModel.createAllocation(
-                    allocationName = "test allocation",
-                    dataShards = 2,
-                    parityShards = 2,
-                    allocationSize = 2147483648,
-                    expirationSeconds = Date().time / 1000 + 30000,
-                    lockTokens = Zcncore.convertToValue(1.0),
+                    allocationName = ALLOCATION_NAME,
+                    dataShards = DATA_SHARDS,
+                    parityShards = PARITY_SHARDS,
+                    allocationSize = ALLOCATION_SIZE,
+                    expirationSeconds = EXPIRATION_SECONDS,
+                    lockTokens = LOCK_TOKENS,
                 )
                 updateTotalSizeProgress()
 
@@ -156,6 +165,8 @@ class VultFragment : Fragment(), FileClickListener {
                                 fileName = fileName,
                                 filePathURI = filePath,
                                 fileThumbnailPath = "",
+                                encryptFile = false,
+                                webStreaming = false,
                                 callback = uploadStatusCallback
                             )
                             isRefresh(false)
@@ -183,6 +194,8 @@ class VultFragment : Fragment(), FileClickListener {
                             fileName = fileName,
                             filePathURI = filePath,
                             fileThumbnailPath = "",
+                            encryptFile = false,
+                            webStreaming = false,
                             callback = uploadStatusCallback
                         )
                         isRefresh(false)

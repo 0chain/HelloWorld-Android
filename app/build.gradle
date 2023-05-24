@@ -76,28 +76,75 @@ dependencies {
 }
 
 // Automatically extracts and sets the gosdk `zcncore.aar` into app libs directory.
-task extractFromTar {
-    def goSdkTarFilePath = '/home/ubuntu/Downloads/0chain/zcncore/zcncore-android.tar.gz'
+task updategosdk {
+    def gosdkPath = '/home/ubuntu/Downloads/0chain/zcncore/'
+    def gosdkTarFilePath = "/$gosdkPath/zcncore-android.tar.gz"
+    def gosdkZipFilePath = "/$gosdkPath/zcncore-android.zip"
 
     doFirst {
-        println("Extracting zcncore.aar from tar file: " + goSdkTarFilePath)
+        println("Unzipping gosdk......... from path $gosdkZipFilePath")
         exec {
-            commandLine 'tar', '-xvf', goSdkTarFilePath
+            commandLine 'unzip', '-o', gosdkZipFilePath, '-d', gosdkPath
+            workingDir gosdkPath
+        }
+
+        println("Extracting zcncore.aar from tar file: " + gosdkTarFilePath)
+        exec {
+            commandLine 'tar', '-xvf', gosdkTarFilePath
             workingDir 'libs'
         }
+
         println("Moving the extracted zcncore.aar to libs directory")
         exec {
             commandLine 'mv', 'out/androidsdk/zcncore.aar', 'zcncore.aar'
             workingDir 'libs'
         }
+
         println("Deleting the folder out from libs directory")
         exec {
             commandLine 'rm', '-rf', 'out'
             workingDir 'libs'
         }
-        println("Deleting the tar file from $goSdkTarFilePath directory")
+
+        println("Deleting the tar file from $gosdkTarFilePath directory")
         exec {
-            commandLine 'rm', '-rf', goSdkTarFilePath
+            commandLine 'rm', '-rf', gosdkTarFilePath
+        }
+
+        println("Deleting the zip file from $gosdkZipFilePath directory")
+        exec {
+            commandLine 'rm', '-rf', gosdkZipFilePath
+        }
+    }
+    doLast {
+        tasks.getByName('copyNativeSupportLibs').enabled = true
+    }
+}
+
+// Run this task everytime you want to change or update the gosdk.
+task copyNativeSupportLibs {
+    dependsOn('updategosdk')
+    doFirst {
+        println("Unzipping native support libs.........")
+        exec {
+            commandLine 'unzip', '-o', 'zcncore.aar', '-d', 'unzipped_aar'
+            workingDir 'libs'
+        }
+
+        println("Copying native libs to jniLibs directory ................")
+        exec {
+            commandLine 'cp', 'app/libs/unzipped_aar/jni/arm64-v8a/libgojni.so', 'app/src/main/jniLibs/arm64-v8a/'
+            workingDir rootProject.projectDir
+        }
+        exec {
+            commandLine 'cp', 'app/libs/unzipped_aar/jni/x86_64/libgojni.so', 'app/src/main/jniLibs/x86_64/'
+            workingDir rootProject.projectDir
+        }
+
+        println("Remove the unzipped libs directory ................")
+        exec {
+            commandLine 'rm', '-rf', 'unzipped_aar'
+            workingDir 'libs'
         }
     }
 }

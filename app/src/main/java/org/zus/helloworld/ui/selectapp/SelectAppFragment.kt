@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.zus.helloworld.R
+import org.zus.helloworld.databinding.ContentMainBinding
 import org.zus.helloworld.databinding.SelectAppFragmentBinding
 import org.zus.helloworld.models.bolt.WalletModel
 import org.zus.helloworld.ui.mainactivity.MainViewModel
@@ -23,6 +24,7 @@ class SelectAppFragment : Fragment() {
     lateinit var binding: SelectAppFragmentBinding
     lateinit var mainViewModel: MainViewModel
     lateinit var vultViewModel: VultViewModel
+    lateinit var contentMainBinding: ContentMainBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,6 +32,10 @@ class SelectAppFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         binding = SelectAppFragmentBinding.inflate(inflater, container, false)
+        contentMainBinding = ContentMainBinding.bind(
+            requireActivity().findViewById(R.id.content_main)
+        )
+
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         vultViewModel = ViewModelProvider(requireActivity())[VultViewModel::class.java]
 
@@ -44,7 +50,9 @@ class SelectAppFragment : Fragment() {
         binding.cvAllocationDetails.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 try {
+                    contentMainBinding.progressContentMain.visibility = View.VISIBLE
                     val allocationModel = vultViewModel.getAllocation()
+                    contentMainBinding.progressContentMain.visibility = View.GONE
                     if (allocationModel != null)
                         AllocationDetailsBottomScreenFragment(allocationModel).show(
                             parentFragmentManager,
@@ -57,6 +65,7 @@ class SelectAppFragment : Fragment() {
                             Snackbar.LENGTH_LONG
                         ).show()
                 } catch (e: Exception) {
+                    contentMainBinding.progressContentMain.visibility = View.GONE
                     Snackbar.make(
                         binding.root,
                         "Error: ${e.message}",
@@ -64,7 +73,6 @@ class SelectAppFragment : Fragment() {
                     ).show()
                 }
             }
-
         }
         binding.cvNetworkDetails.setOnClickListener {
             val networkDetailsBottomScreenFragment =

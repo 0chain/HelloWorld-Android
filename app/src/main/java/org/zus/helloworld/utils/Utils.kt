@@ -25,6 +25,13 @@ import java.util.*
 
 class Utils(private var applicationContext: Context) {
     companion object {
+        const val ATLUS_BASE_URL = "https://dev.atlus.cloud"
+
+        fun String.getAtlusURL(): String {
+            val hash = this
+            return "$ATLUS_BASE_URL/transaction-details/$hash"
+        }
+
         fun Int.getConvertedDateTime(): String {
             val s = this
             return try {
@@ -67,12 +74,15 @@ class Utils(private var applicationContext: Context) {
                 size > gb -> {
                     "${size / gb} GB"
                 }
+
                 size > mb -> {
                     "${size / mb} MB"
                 }
+
                 size > kb -> {
                     "${size / kb} KB"
                 }
+
                 else -> {
                     "$size B"
                 }
@@ -88,14 +98,34 @@ class Utils(private var applicationContext: Context) {
                 size > gb -> {
                     "${size / gb} GB"
                 }
+
                 size > mb -> {
                     "${size / mb} MB"
                 }
+
                 size > kb -> {
                     "${size / kb} KB"
                 }
+
                 else -> {
                     "$size B"
+                }
+            }
+        }
+
+        fun Long.getSizeInKB(type: StorageSizes): Long {
+            val size = this
+            return when (type) {
+                StorageSizes.KB -> {
+                    size
+                }
+
+                StorageSizes.MB -> {
+                    size * 1024
+                }
+
+                StorageSizes.GB -> {
+                    size * 1024 * 1024
                 }
             }
         }
@@ -293,6 +323,7 @@ class Utils(private var applicationContext: Context) {
                             "storage" + "/" + docId.replace(":", "/")
                         }
                     }
+
                     isDownloadsDocument(uri) -> {
                         val fileName = getFilePath(uri)
                         if (fileName != null) {
@@ -311,6 +342,7 @@ class Utils(private var applicationContext: Context) {
                         )
                         return getDataColumn(contentUri, null, null)
                     }
+
                     isMediaDocument(uri) -> {
                         val docId = DocumentsContract.getDocumentId(uri)
                         val split = docId.split(":").toTypedArray()
@@ -320,9 +352,11 @@ class Utils(private var applicationContext: Context) {
                             "image" -> {
                                 contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                             }
+
                             "video" -> {
                                 contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
                             }
+
                             "audio" -> {
                                 contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
                             }
@@ -337,6 +371,7 @@ class Utils(private var applicationContext: Context) {
                     }
                 }
             }
+
             "content".equals(uri.scheme, ignoreCase = true) -> {
                 // Return the remote address
                 return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(
@@ -345,6 +380,7 @@ class Utils(private var applicationContext: Context) {
                     null
                 )
             }
+
             "file".equals(uri.scheme, ignoreCase = true) -> {
                 return uri.path
             }

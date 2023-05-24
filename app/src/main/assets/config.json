@@ -1,14 +1,14 @@
 {
   "config": {
     "signature_scheme": "bls0chain",
-    "block_worker": "https://demo.zus.network/dns",
+    "block_worker": "https://dev.zus.network/dns",
     "confirmation_chain_length": 3
   },
   "data_shards": 2,
   "parity_shards": 2,
-  "zbox_url": "https://0box.demo.zus.network/",
-  "block_worker": "https://demo.zus.network",
-  "domain_url": "demo.zus.network",
-  "network_fee_url": "https://demo.zus.network/miner01/v1/block/get/fee_stats",
-  "explorer_url": "https://demo.zus.network/"
+  "zbox_url": "https://0box.dev.zus.network/",
+  "block_worker": "https://dev.zus.network",
+  "domain_url": "dev.zus.network",
+  "network_fee_url": "https://dev.zus.network/miner01/v1/block/get/fee_stats",
+  "explorer_url": "https://dev.zus.network/"
 }
