@@ -1,14 +1,15 @@
 package org.zus.helloworld.utils
 
 import android.util.Log
+import android.util.MalformedJsonException
 import com.google.gson.Gson
+import com.google.gson.JsonParseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.zus.helloworld.models.fees.FeesTableModel
 import org.zus.helloworld.ui.bolt.TAG_BOLT
 import zcn.Zcn
-import zcncore.RequestTimeout
 import zcncore.Zcncore
-import java.util.Arrays
 
 
 class ZcnSDK {
@@ -58,24 +59,22 @@ class ZcnSDK {
             }
         }
 
-        public suspend fun estimateTransactionFee(zcnValue: String): String {
+        /**
+         *  This method returns the min transaction fee for send transaction.
+         *  Transaction fee for other transactions can also be known using the fee table.
+         */
+        public suspend fun estimateTransactionFee(): String {
             return withContext(Dispatchers.IO) {
                 return@withContext try {
-                    val feesList = Zcncore.getFeeStats(object : RequestTimeout {
-                        override fun get(): Long {
-                            return 0
-                        }
-
-                        override fun set(p0: Long) {
-                            Log.i(TAG_BOLT, "Fees Stats ==> $p0")
-                        }
-                    })
-                    Arrays.sort(feesList)
-                    val fees = feesList[feesList.size / 2]
-                    val transactionFeeLong: Long =
-                        (zcnToTokenLongFormat(zcnValue.toDouble()) * 0.1 + fees).toLong()
-//                val fee = tokenLongToZcnFormat(transactionFeeLong).toString()
-                    transactionFeeLong.toString()
+                    val feeTableJson = Zcncore.getFeesTable(30.0F)
+                    val feesTableModel = Gson().fromJson(feeTableJson, FeesTableModel::class.java)
+                    feesTableModel.transfer.transfer.toString()
+                } catch (e: MalformedJsonException) {
+                    Log.e(TAG_BOLT, "estimateTransactionFee: $e")
+                    "0"
+                } catch (e: JsonParseException) {
+                    Log.e(TAG_BOLT, "estimateTransactionFee: $e")
+                    "0"
                 } catch (e: Exception) {
                     Log.e(TAG_BOLT, "estimateTransactionFee: $e")
                     "0"

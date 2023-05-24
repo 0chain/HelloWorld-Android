@@ -14,7 +14,6 @@ import org.zus.helloworld.models.bolt.TransactionModel
 import org.zus.helloworld.utils.Utils.Companion.mergeListsWithoutDuplicates
 import org.zus.helloworld.utils.ZcnSDK
 import zcncore.GetInfoCallback
-import zcncore.RequestTimeout
 import zcncore.Transaction
 import zcncore.TransactionCallback
 import zcncore.Zcncore
@@ -73,7 +72,7 @@ class BoltViewModel : ViewModel() {
         withContext(Dispatchers.IO) {
             try {
                 isRefreshLiveData.postValue(true)
-                val transactionFee = ZcnSDK.estimateTransactionFee(amount)
+                val transactionFee = ZcnSDK.estimateTransactionFee()
                 Log.i(TAG_BOLT, "TransactionFees ==> $transactionFee")
 
                 Zcncore.newTransaction(
