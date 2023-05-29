@@ -113,19 +113,52 @@ class Utils(private var applicationContext: Context) {
             }
         }
 
-        fun Long.getSizeInKB(type: StorageSizes): Long {
+        fun Long.getSizeInB(type: StorageSizes): Long {
             val size = this
             return when (type) {
-                StorageSizes.KB -> {
+                StorageSizes.B -> {
                     size
                 }
 
-                StorageSizes.MB -> {
+                StorageSizes.KB -> {
                     size * 1024
                 }
 
-                StorageSizes.GB -> {
+                StorageSizes.MB -> {
                     size * 1024 * 1024
+                }
+
+                StorageSizes.GB -> {
+                    size * 1024 * 1024 * 1024
+                }
+            }
+        }
+
+        fun Long.getTimeInNanoSeconds(type: ExpirationTime): Long {
+            val time = this
+            return when (type) {
+                ExpirationTime.NanoSecond -> {
+                    time
+                }
+
+                ExpirationTime.MicroSecond -> {
+                    time * 1000
+                }
+
+                ExpirationTime.MilliSecond -> {
+                    time * 1000 * 1000
+                }
+
+                ExpirationTime.Second -> {
+                    time * 1000 * 1000 * 1000
+                }
+
+                ExpirationTime.Minute -> {
+                    time * 1000 * 1000 * 1000 * 60
+                }
+
+                ExpirationTime.Hour -> {
+                    time * 1000 * 1000 * 1000 * 60 * 60
                 }
             }
         }

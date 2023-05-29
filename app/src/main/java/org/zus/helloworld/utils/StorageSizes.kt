@@ -1,5 +1,5 @@
 package org.zus.helloworld.utils
 
 enum class StorageSizes {
-    KB, MB, GB
+    B, KB, MB, GB
 }
