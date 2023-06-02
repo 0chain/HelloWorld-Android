@@ -223,7 +223,15 @@ class VultFragment : Fragment(), FileClickListener {
         }
 
         binding.cvUploadImage.setOnClickListener {
-            photoPicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
+            if (PickVisualMedia.isPhotoPickerAvailable(requireContext())) {
+                photoPicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
+            } else {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "image/*"
+                }
+                documentPicker.launch(intent)
+            }
         }
 
         binding.cvUploadDocument.setOnClickListener {
@@ -402,25 +410,23 @@ class VultFragment : Fragment(), FileClickListener {
                         p4: Long,
                         p5: Long,
                     ) {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            isRefresh(false)
-                            val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
-                                setDataAndType(
-                                    Utils(requireContext()).getUriForFile(
-                                        File(
-                                            downloadPath,
-                                            vultViewModel.files.value!![filePosition].name
-                                        )
-                                    ),
-                                    vultViewModel.files.value!![filePosition].mimetype
-                                )
-                                flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                            }
-                            try {
-                                startActivity(intentOpenDownloadedFile)
-                            } catch (e: Exception) {
-                                Log.e(TAG_VULT, "Error: ${e.message}")
-                            }
+                        isRefresh(false)
+                        val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(
+                                Utils(requireContext()).getUriForFile(
+                                    File(
+                                        downloadPath,
+                                        vultViewModel.files.value!![filePosition].name
+                                    )
+                                ),
+                                vultViewModel.files.value!![filePosition].mimetype
+                            )
+                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+                        }
+                        try {
+                            startActivity(intentOpenDownloadedFile)
+                        } catch (e: Exception) {
+                            Log.e(TAG_VULT, "Error: ${e.message}")
                         }
                     }
 
