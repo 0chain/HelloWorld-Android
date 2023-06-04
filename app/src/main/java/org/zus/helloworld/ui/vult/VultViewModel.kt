@@ -333,4 +333,21 @@ class VultViewModel : ViewModel() {
             return BlobberNodeModel()
         }
     }
+
+    suspend fun uploadMultipleFilesWithCallback(
+        workDir: String,
+        callback: StatusCallbackMocked,
+        multiUploadRequestBody: String
+    ) {
+        withContext(Dispatchers.IO) {
+            Log.i(TAG_VULT, "uploadFiles: workDir: $workDir")
+            Log.i(TAG_VULT, "uploadFiles: multiUploadRequestBody: $multiUploadRequestBody")
+            try {
+                val allocationId = getAllocation()?.id
+                zbox.Zbox.multiUpload(allocationId, workDir, multiUploadRequestBody, callback)
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "uploadFile Exception: ", e)
+            }
+        }
+    }
 }

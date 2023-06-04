@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +43,7 @@ import org.zus.helloworld.utils.Utils.Companion.getConvertedDateTime
 import org.zus.helloworld.utils.Utils.Companion.getConvertedSize
 import org.zus.helloworld.utils.Utils.Companion.getSizeInB
 import org.zus.helloworld.utils.Utils.Companion.getTimeInNanoSeconds
+import org.zus.helloworld.utils.from
 import zbox.StatusCallbackMocked
 import zcncore.Zcncore
 import java.io.File
@@ -55,6 +60,8 @@ val ALLOCATION_SIZE = 2L.getSizeInB(StorageSizes.GB)
 val EXPIRATION_SECONDS =
     Date().time / 1000 + 720L.getTimeInNanoSeconds(ExpirationTime.Hour) / (1000000000)
 val LOCK_TOKENS: String = Zcncore.convertToValue(1.0)
+private const val REQUEST_FILES = 1
+private const val RESULT_ERROR = 64
 
 class VultFragment : Fragment(), FileClickListener {
     private lateinit var binding: VultFragmentBinding
@@ -148,39 +155,61 @@ class VultFragment : Fragment(), FileClickListener {
         val documentPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
-                    val resultIntent: Intent? = result.data
-                    if (resultIntent != null) {
-                        /* Uploading files. */
-                        val uri = resultIntent.data!!
-                        val fileName = Utils(requireContext()).getFileName(uri)
-                        val filePath = makeFileCopyInCacheDir(uri)
-
-                        Log.i(TAG_VULT, "Uri: $uri")
-                        Log.i(TAG_VULT, "Uri path: ${uri.path}")
-                        Log.i(TAG_VULT, "File name: $fileName")
-                        Log.i(TAG_VULT, "File path: $filePath")
-
+                    val data: Intent? = result.data
+                    if (data?.clipData != null) {
+                        val count: Int = data.clipData!!.itemCount
+                        val jsonArray = JsonArray()
+                        val gson = Gson()
+                        for (i in 0 until count) {
+                            val fileUri: Uri = data.clipData!!.getItemAt(i).uri
+                            val fileName = Utils(requireContext()).getFileName(fileUri)
+                            context?.let { from(it, fileUri, fileName) }
+                            val androidPath = context?.filesDir?.absolutePath + "/"+fileName
+                            Log.i(TAG_VULT, "Uri: $fileUri")
+                            Log.i(TAG_VULT, "Uri path: ${fileUri.path}")
+                            Log.i(TAG_VULT, "File name: $fileName")
+                            val jsonObject = JsonObject()
+                            jsonObject.addProperty("remotePath", "/")
+                            jsonObject.addProperty("fileName", fileName)
+                            jsonObject.addProperty("encrypt", false)
+                            jsonObject.addProperty("filePath", androidPath)
+                            jsonArray.add(jsonObject)
+                        }
+                        val jsonString = gson.toJson(jsonArray)
                         CoroutineScope(Dispatchers.Main).launch {
                             isRefresh(true)
-                            vultViewModel.uploadFileWithCallback(
+                            vultViewModel.uploadMultipleFilesWithCallback(
                                 workDir = requireContext().filesDir.absolutePath,
-                                fileName = fileName,
-                                filePathURI = filePath,
-                                fileThumbnailPath = "",
-                                encryptFile = false,
-                                webStreaming = false,
-                                callback = uploadStatusCallback
+                                multiUploadRequestBody = jsonString,
+                                callback = statusCallbackForMultiUpload
                             )
                             isRefresh(false)
                         }
+                    } else if (data != null && data.data != null) {
+                        val fileUri: Uri = data.data!!
+                        /*CoroutineScope(Dispatchers.Main).launch {
+                            isRefresh(true)
+                            vultViewModel.uploadMultipleFilesWithCallback(
+                                workDir = requireContext().filesDir.absolutePath,
+                                encryptFile = false,
+                                webStreaming = false,
+                                callback = uploadStatusCallback,
+                                fileUriList = listOf(fileUri) as MutableList<Uri>
+                            )
+                            isRefresh(false)
+                        }*/
                     }
+                } else if (result.resultCode == RESULT_ERROR) {
+                    makeToast("Error picking image gallery")
+                } else {
+                    makeToast("Not selected")
                 }
             }
 
-        val photoPicker =
+        /*val photoPicker =
             registerForActivityResult(PickVisualMedia()) { uri ->
                 if (uri != null) {
-                    /* Uploading files. */
+                    *//* Uploading files. *//*
                     val fileName = Utils(requireContext()).getFileName(uri)
                     val filePath = makeFileCopyInCacheDir(uri)
 
@@ -203,7 +232,7 @@ class VultFragment : Fragment(), FileClickListener {
                         isRefresh(false)
                     }
                 }
-            }
+            }*/
 
         binding.tvStorageUsed.text =
             getString(R.string.storage_used, 0.getConvertedSize(), 0.getConvertedSize())
@@ -223,14 +252,16 @@ class VultFragment : Fragment(), FileClickListener {
         }
 
         binding.cvUploadImage.setOnClickListener {
-            photoPicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "image/*"
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            documentPicker.launch(intent)
         }
 
         binding.cvUploadDocument.setOnClickListener {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
-            }
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             documentPicker.launch(intent)
         }
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -243,6 +274,10 @@ class VultFragment : Fragment(), FileClickListener {
 
 
         return binding.root
+    }
+
+    private fun makeToast(message: String) {
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun updateTotalSizeProgress() {
@@ -501,7 +536,7 @@ class VultFragment : Fragment(), FileClickListener {
         }
     }
 
-    private val uploadStatusCallback = object : StatusCallbackMocked {
+    private val statusCallbackForMultiUpload = object : StatusCallbackMocked {
         override fun commitMetaCompleted(p0: String?, p1: String?, p2: Exception?) {
             Log.d(TAG_VULT, "commitMetaCompleted: ")
             Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
@@ -576,4 +611,80 @@ class VultFragment : Fragment(), FileClickListener {
             ).show()
         }
     }
+
+    /*private val uploadStatusCallback = object : StatusCallbackMocked {
+        override fun commitMetaCompleted(p0: String?, p1: String?, p2: Exception?) {
+            Log.d(TAG_VULT, "commitMetaCompleted: ")
+            Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
+            Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
+            Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
+        }
+
+        override fun completed(
+            p0: String?,
+            p1: String?,
+            p2: String?,
+            p3: String?,
+            p4: Long,
+            p5: Long,
+        ) {
+            Log.d(TAG_VULT, "completed: ")
+            Log.d(TAG_VULT, "completed: p0: $p0")
+            Log.d(TAG_VULT, "completed: p1: $p1")
+            Log.d(TAG_VULT, "completed: p2: $p2")
+            Log.d(TAG_VULT, "completed: p3: $p3")
+            Log.d(TAG_VULT, "completed: p4: $p4")
+            Log.d(TAG_VULT, "completed: p5: $p5")
+            CoroutineScope(vultViewModel.viewModelScope.coroutineContext).launch {
+                vultViewModel.listFiles("/")
+            }
+            Snackbar.make(
+                binding.root,
+                "Successfully Uploaded the File.",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun error(p0: String?, p1: String?, p2: Long, p3: Exception?) {
+            Log.d(TAG_VULT, "error: ")
+            Log.d(TAG_VULT, "error: p0: $p0")
+            Log.d(TAG_VULT, "error: p1: $p1")
+            Log.d(TAG_VULT, "error: p2: $p2")
+            Log.d(TAG_VULT, "error: p3: $p3")
+            Snackbar.make(
+                binding.root,
+                "Unable to upload" +
+                        "Error: ${p3?.message}",
+                Snackbar.LENGTH_SHORT
+            ).show()
+            isRefresh(false)
+        }
+
+        override fun inProgress(p0: String?, p1: String?, p2: Long, p3: Long, p4: ByteArray?) {
+            Log.d(TAG_VULT, "inProgress: ")
+            Log.d(TAG_VULT, "inProgress: p0: $p0")
+            Log.d(TAG_VULT, "inProgress: p1: $p1")
+            Log.d(TAG_VULT, "inProgress: p2: $p2")
+            Log.d(TAG_VULT, "inProgress: p3: $p3")
+            Log.d(TAG_VULT, "inProgress: p4: $p4")
+        }
+
+        override fun repairCompleted(p0: Long) {
+            Log.d(TAG_VULT, "repairCompleted: ")
+            Log.d(TAG_VULT, "repairCompleted: p0: $p0")
+        }
+
+        override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+            Log.d(TAG_VULT, "started: ")
+            Log.d(TAG_VULT, "started: p0: $p0")
+            Log.d(TAG_VULT, "started: p1: $p1")
+            Log.d(TAG_VULT, "started: p2: $p2")
+            Log.d(TAG_VULT, "started: p3: $p3")
+            Snackbar.make(
+                binding.root,
+                "Uploading file...",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
+    }*/
 }
