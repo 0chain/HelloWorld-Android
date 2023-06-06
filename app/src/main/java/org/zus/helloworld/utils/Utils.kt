@@ -1,5 +1,6 @@
 package org.zus.helloworld.utils
 
+import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
@@ -9,7 +10,10 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.inputmethod.InputMethodManager
+import android.webkit.MimeTypeMap
 import android.webkit.URLUtil
+import android.widget.EditText
 import androidx.core.database.getStringOrNull
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -20,6 +24,7 @@ import org.zus.helloworld.models.bolt.WalletModel
 import org.zus.helloworld.ui.TAG_CREATE_WALLET
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -226,6 +231,11 @@ class Utils(private var applicationContext: Context) {
                 Log.e(TAG_CREATE_WALLET, "json string $this")
                 string
             }
+        }
+
+        fun convertEpochTimeToMillis(dates: String): Long {
+            val epochDate = dates.toInt()
+            return epochDate.toLong()
         }
     }
 
@@ -497,5 +507,45 @@ class Utils(private var applicationContext: Context) {
      */
     private fun isGooglePhotosUri(uri: Uri): Boolean {
         return "com.google.android.apps.photos.content" == uri.authority
+    }
+    private val okFileExtensions = arrayOf(
+        "jpg",
+        "png",
+        "gif",
+        "jpeg"
+    )
+
+    fun getRootDir(allocID: String): String? {
+        val CAMERA_FOLDER = File(
+            "" + Environment.getExternalStorageDirectory().toString() + "/DCIM/Camera/" + allocID
+        )
+        return CAMERA_FOLDER.path
+    }
+
+    @Throws(IOException::class)
+    fun rootDirCreate(allocationID: String) {
+        val rootDir = getRootDir(allocationID) ?: throw IOException("error with root dir")
+        val root = File(rootDir)
+        if (root != null && !root.exists()) {
+            root.mkdirs()
+        }
+    }
+
+    fun hideKeyboard(input: EditText, context: Context) {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(input.windowToken, 0)
+    }
+
+    fun isImage(file: File): Boolean {
+        for (extension in okFileExtensions) {
+            if (file.name.lowercase(Locale.getDefault()).endsWith(extension)) {
+                return true
+            }
+        }
+        return false
+    }
+    fun getMimeType(file: File): String? {
+        val fileExtension = MimeTypeMap.getFileExtensionFromUrl(file.path)
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
     }
 }

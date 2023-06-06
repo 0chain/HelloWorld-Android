@@ -6,12 +6,12 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import org.zus.helloworld.data.Files
 import org.zus.helloworld.models.blobber.BlobberNodeModel
 import org.zus.helloworld.models.blobber.BlobbersUrlIdModel
 import org.zus.helloworld.models.blobber.StatsModel
 import org.zus.helloworld.models.vult.AllocationModel
-import org.zus.helloworld.models.vult.FileModel
-import org.zus.helloworld.models.vult.FileResponseModel
 import sdk.Sdk
 import sdk.StorageSDK
 import zbox.Allocation
@@ -21,8 +21,13 @@ class VultViewModel : ViewModel() {
     lateinit var storageSDK: StorageSDK
     lateinit var allocationId: String
     lateinit var allocation: AllocationModel
-    var files: MutableLiveData<List<FileModel>> = MutableLiveData()
+    var filesList: MutableLiveData<MutableList<Files>?> = MutableLiveData()
     var totalStorageUsed = MutableLiveData<Long>()
+    var notifyDataSetChanged = MutableLiveData<Boolean>()
+
+    init {
+        filesList.value = mutableListOf()
+    }
 
     companion object {
         suspend fun initZboxStorageSDK(config: String, walletJSON: String): StorageSDK =
@@ -148,6 +153,7 @@ class VultViewModel : ViewModel() {
                         Gson().fromJson(storageSDK.allocations, AllocationModel::class.java)
                 }
                 storageSDK.getAllocation(allocations?.get(0)!!.id)
+
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "getAllocation Exception: ", e)
                 null
@@ -259,9 +265,9 @@ class VultViewModel : ViewModel() {
      *  @param fileRefereeClientId - client id of the referee (if not present, default is "")
      */
     suspend fun getShareAuthToken(
-        fileRemotePath: String,
-        fileName: String,
-        fileReferenceType: String,
+        fileRemotePath: String?,
+        fileName: String?,
+        fileReferenceType: String?,
         fileRefereeClientId: String
     ): String? {
         return withContext(Dispatchers.IO) {
@@ -281,19 +287,48 @@ class VultViewModel : ViewModel() {
         }
     }
 
+    @Throws(java.lang.Exception::class)
+    private fun bindData(listDir: String): List<Files>? {
+        val dataList: MutableList<Files> = ArrayList()
+        val jsonObject = JSONObject(listDir)
+        if (jsonObject.getString("list") != "null") {
+            val filesList = jsonObject.getJSONArray("list")
+            for (i in 0 until filesList.length()) {
+                val fileObj = filesList[i] as JSONObject
+                Log.e("TAG", "Path of Fetching File ==>" + fileObj.getString("path"))
+                dataList.add(Files.fromJson(fileObj, allocationId))
+            }
+        }
+        return dataList
+    }
+
     suspend fun listFiles(remotePath: String) {
+        allocationId = getAllocation()?.id!!
         return withContext(Dispatchers.IO) {
             getAllocation()?.let { allocation ->
                 try {
                     val json = allocation.listDir(remotePath)
                     Log.i(TAG_VULT, "listFiles: json: $json")
-                    val files = Gson().fromJson(json, FileResponseModel::class.java)
-                    this@VultViewModel.files.postValue(files.list)
+                    val fetchedList: List<Files>? = bindData(json)
+                    if (fetchedList != null) {
+                        for (item in fetchedList) {
+                            val exists = filesList.value?.any { file ->
+                                file.name == item.name
+                            }
+
+                            if (exists != true) {
+                                filesList.value?.add(item)
+                            }
+                        }
+                    }
                     var totalStorage = 0L
-                    for (file in files.list) {
-                        totalStorage += file.size
+                    if (fetchedList != null) {
+                        for (file in fetchedList) {
+                            totalStorage += file.size
+                        }
                     }
                     this@VultViewModel.totalStorageUsed.postValue(totalStorage)
+                    notifyDataSetChanged.postValue(true)
                 } catch (e: Exception) {
                     Log.e(TAG_VULT, "listFiles Exception: ", e)
                 }
@@ -339,14 +374,98 @@ class VultViewModel : ViewModel() {
         callback: StatusCallbackMocked,
         multiUploadRequestBody: String
     ) {
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             Log.i(TAG_VULT, "uploadFiles: workDir: $workDir")
             Log.i(TAG_VULT, "uploadFiles: multiUploadRequestBody: $multiUploadRequestBody")
             try {
-                val allocationId = getAllocation()?.id
                 zbox.Zbox.multiUpload(allocationId, workDir, multiUploadRequestBody, callback)
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "uploadFile Exception: ", e)
+            }
+        }
+    }
+
+    fun addFileToMutableList(uploadingFile: Files) {
+        val currentValue = filesList.value
+        currentValue?.add(uploadingFile)
+        filesList.value = currentValue
+    }
+
+    fun modifyProgressForFile(remotePath: String?, uploadedBytes: Long) {
+        val file = filesList.value?.find { file -> file.remotePath == remotePath }
+        file?.uploadedBytes = uploadedBytes
+        file?.setUploadStatus(Files.STATUS_STARTED)
+        file?.let { modifiedFile ->
+            val index = filesList.value?.indexOf(modifiedFile)
+            index?.let {
+                filesList.value?.set(it, modifiedFile)
+                notifyDataSetChanged.postValue(true)
+            }
+        }
+    }
+
+    fun modifyUploadStatusToCompleteForFile(remotePath: String?) {
+        val file = filesList.value?.find { file -> file.remotePath == remotePath }
+        file?.setUploadStatus(Files.STATUS_COMPLETED)
+        file?.let { modifiedFile ->
+            val index = filesList.value?.indexOf(modifiedFile)
+            index?.let {
+                filesList.value?.set(it, modifiedFile)
+                notifyDataSetChanged.postValue(true)
+            }
+        }
+    }
+
+    fun modifyTotalSizeForFile(remotePath: String?, totalSize: Long) {
+        val file = filesList.value?.find { file -> file.remotePath == remotePath }
+        file?.totalSize = totalSize
+        file?.let { modifiedFile ->
+            val index = filesList.value?.indexOf(modifiedFile)
+            index?.let { filesList.value?.set(it, modifiedFile) }
+        }
+    }
+
+    fun makeNotifyDataSetChangedFalse() {
+        notifyDataSetChanged.postValue(false)
+    }
+
+    suspend fun downloadThumbnail(file: Files, position: Int, callback: StatusCallbackMocked) {
+        withContext(Dispatchers.IO) {
+            try {
+                getAllocation()?.let { allocation ->
+                    zbox.Zbox.downloadThumbnail(
+                        allocation.id,
+                        file.remotePath,
+                        file.thumbnailPath,
+                        callback
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateFileWithThumbNailPath(remotePath: String, thumbnailPath: String) {
+        val file = filesList.value?.find { fileItem -> fileItem.remotePath == remotePath }
+        file?.thumbnailPath = thumbnailPath
+        file?.let { modifiedFile ->
+            val index = filesList.value?.indexOf(modifiedFile)
+            index?.let {
+                filesList.value?.set(it, modifiedFile)
+                notifyDataSetChanged.postValue(true)
+            }
+        }
+    }
+
+    fun updateFileWithAndroidPath(remotePath: String, androidPath: String) {
+        val file = filesList.value?.find { fileItem -> fileItem.remotePath == remotePath }
+        file?.thumbnailPath = androidPath
+        file?.let { modifiedFile ->
+            val index = filesList.value?.indexOf(modifiedFile)
+            index?.let {
+                filesList.value?.set(it, modifiedFile)
+                notifyDataSetChanged.postValue(true)
             }
         }
     }
