@@ -57,6 +57,10 @@ init {
 
 Now we also need to initialize the `Zcncore` in our `Application` class.
 
+```kotlin
+Zcncore.init(configJsonString)
+```
+
 configJson is the json string which contains the configuration for the sdk.
 
 ```json
@@ -74,10 +78,6 @@ configJson is the json string which contains the configuration for the sdk.
   "network_fee_url": "https://demo.zus.network/miner01/v1/block/get/fee_stats",
   "explorer_url": "https://demo.zus.network/"
 }
-```
-
-```kotlin
-Zcncore.init(configJsonString)
 ```
 
 ## How to create a wallet.
