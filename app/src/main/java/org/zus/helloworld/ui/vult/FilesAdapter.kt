@@ -88,10 +88,11 @@ class FilesAdapter(
         holder.itemView.setOnClickListener {
             onFileClickListener.onFileClick(position)
         }
-        holder.itemView.setOnLongClickListener {
+
+        /*holder.itemView.setOnLongClickListener {
             onFileClickListener.onShareLongPressFileClickListener(position)
             true
-        }
+        }*/
     }
 
     override fun getItemCount(): Int {
