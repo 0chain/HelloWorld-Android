@@ -62,22 +62,17 @@ configJson is the json string which contains the configuration for the sdk.
 ```json
  {
   "config": {
-    "chain_id": "0afc093ffb509f059c55478bc1a60351cef7b4e9c008a53a6cc8241ca8617dfe",
     "signature_scheme": "bls0chain",
-    "block_worker": "https://beta.0chain.net/dns",
-    "min_submit": 50,
-    "min_confirmation": 50,
-    "confirmation_chain_length": 3,
-    "num_keys": 1,
-    "eth_node": "https://ropsten.infura.io/v3/f0a254d8d18b4749bd8540da63b3292b"
+    "block_worker": "https://demo.zus.network/dns",
+    "confirmation_chain_length": 3
   },
   "data_shards": 2,
   "parity_shards": 2,
-  "zbox_url": "https://0box.beta.0chain.net/",
-  "block_worker": "https://beta.0chain.net",
-  "domain_url": "beta.0chain.net",
-  "network_fee_url": "https://beta.0chain.net/miner01/v1/block/get/fee_stats",
-  "explorer_url": "https://beta.0chain.net/"
+  "zbox_url": "https://0box.demo.zus.network/",
+  "block_worker": "https://demo.zus.network",
+  "domain_url": "demo.zus.network",
+  "network_fee_url": "https://demo.zus.network/miner01/v1/block/get/fee_stats",
+  "explorer_url": "https://demo.zus.network/"
 }
 ```
 
