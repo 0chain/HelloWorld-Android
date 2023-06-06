@@ -16,15 +16,15 @@ Vult is a dencentralised anonymous file sharing platform. Users can upload files
 other users.
 
 File Uploads: mobilesdk method zbox.Zbox.multiUpload() is used to upload multiple files simultaneously.
-More details on params used is mentioned here:  https://github.com/0chain/gosdk/blob/7f9eea986a87697ad13710731f4ba350b4a47c08/mobilesdk/zbox/storage.go#L275
+More details on params used is mentioned [here](https://github.com/0chain/gosdk/blob/7f9eea986a87697ad13710731f4ba350b4a47c08/mobilesdk/zbox/storage.go#L275)
 
 File Download: mobilesdk method zbox.Zbox.downloadFile() is used to download the desired file.
-More details on params used is mentioned here: https://github.com/0chain/gosdk/blob/7f9eea986a87697ad13710731f4ba350b4a47c08/mobilesdk/zbox/storage.go#L198
+More details on params used is mentioned [here](https://github.com/0chain/gosdk/blob/7f9eea986a87697ad13710731f4ba350b4a47c08/mobilesdk/zbox/storage.go#L198)
 
 The file can either be downloaded in the app specific storage (Making Available Offline) or in the phone's downloads directory (Downloading). In HelloWorld-Android, to demonstrate both of these, first, the file is downloaded in app specific storage and then a copy is made into the phone's download directory.
 
 Thumbnail Download:  mobilesdk method zbox.Zbox.downloadThumbnail() is used to download the desired file.
-More details on params used is mentioned here: https://github.com/0chain/gosdk/blob/7f9eea986a87697ad13710731f4ba350b4a47c08/mobilesdk/zbox/storage.go#L237
+More details on params used is mentioned [here](https://github.com/0chain/gosdk/blob/7f9eea986a87697ad13710731f4ba350b4a47c08/mobilesdk/zbox/storage.go#L237)
 
 ## SDK
 
