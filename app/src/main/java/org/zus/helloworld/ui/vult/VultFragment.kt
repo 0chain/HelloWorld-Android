@@ -534,25 +534,6 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                         snackbar.setBackgroundTint(Color.RED)
                                         snackbar.show()
                                     }
-                                    val uriForFile = Utils(requireContext()).getUriForFile(
-                                        File(
-                                            downloadPath,
-                                            vultViewModel.filesList.value!![filePosition].name
-                                        )
-                                    )
-                                    val intentOpenDownloadedFile =
-                                        Intent(Intent.ACTION_VIEW).apply {
-                                            setDataAndType(
-                                                uriForFile,
-                                                vultViewModel.filesList.value!![filePosition].mimeType
-                                            )
-                                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                                        }
-                                    try {
-                                        startActivity(intentOpenDownloadedFile)
-                                    } catch (e: Exception) {
-                                        Log.e(TAG_VULT, "Error: ${e.message}")
-                                    }
                                 }
                             }
 
@@ -661,20 +642,32 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         if (mimeType != null && mimeType.startsWith("image/")) {
             val filePreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
             filePreview.setImageURI(Uri.fromFile(File(files.thumbnailPath)))
-        } else {
-            if (previewDialog?.isShowing == true) previewDialog!!.dismiss()
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
-            intent.data = fileUri
-            val j = Intent.createChooser(intent, "Choose an application to open with:")
-            startActivity(j)
         }
     }
 
     fun updateFilePreview(position: Int, file: Files) {
         if (currentFilePosition == position) {
-            val filePreview: ImageView = previewLayout!!.findViewById<ImageView>(R.id.filePreview)
-            filePreview.setImageURI(Uri.fromFile(File(file.getAndroidPath())))
+            val mimeType: String? = file.mimeType
+            if (mimeType != null && mimeType.startsWith("image/")) {
+                val filePreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
+                filePreview.setImageURI(Uri.fromFile(File(file.getAndroidPath())))
+            } else {
+                var f: File? = null
+                if (file.getAndroidPath() != null) f = File(file.getAndroidPath())
+                val fileUri = f?.let {
+                    FileProvider.getUriForFile(
+                        requireActivity(),
+                        requireActivity().applicationContext.packageName + ".files.provider",
+                        it
+                    )
+                }
+                if (previewDialog?.isShowing == true) previewDialog!!.dismiss()
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.data = fileUri
+                val j = Intent.createChooser(intent, "Choose an application to open with:")
+                startActivity(j)
+            }
         }
     }
 
