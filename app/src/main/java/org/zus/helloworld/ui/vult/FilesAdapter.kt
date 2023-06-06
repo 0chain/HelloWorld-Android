@@ -1,20 +1,32 @@
 package org.zus.helloworld.ui.vult
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import org.zus.helloworld.R
-import org.zus.helloworld.models.vult.FileModel
+import org.zus.helloworld.data.Files
 import org.zus.helloworld.utils.Utils.Companion.getConvertedSize
+import java.io.File
+import java.util.*
 
 class FilesAdapter(
-    var files: List<FileModel>,
+    var files: MutableList<Files>,
     private val onFileClickListener: FileClickListener,
+    private val context: Context?,
+    private var thumbnailDownloadCallback: ThumbnailDownloadCallback? = null
+
 ) : RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
+    fun setThumbnailDownloadCallback(thumbnailDownloadCallback: ThumbnailDownloadCallback?) {
+        this.thumbnailDownloadCallback = thumbnailDownloadCallback
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
@@ -32,11 +44,43 @@ class FilesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.fileName.text = files[position].name
-        holder.fileSize.text = files[position].size.getConvertedSize()
-        if (files[position].mimetype.contains("image"))
-            holder.ivIcon.setImageResource(R.drawable.ic_upload_image)
-        else
+        val currentFile = files[position]
+        holder.fileName.text = currentFile.name
+        if (currentFile.getUploadStatus() == Files.STATUS_COMPLETED) {
+            if (currentFile.actualFileSize == 0L)
+                holder.fileSize.text = currentFile.totalSize.getConvertedSize()
+            else holder.fileSize.text = currentFile.actualFileSize.getConvertedSize()
+        } else {
+            val uploadPercentage: Double =
+                if (currentFile.totalSize == 0L) 0.0 else currentFile.uploadedBytes * 100.0 / currentFile.totalSize
+            holder.fileSize.text = String.format(
+                Locale.getDefault(),
+                "%.0f%%",
+                uploadPercentage
+            )
+        }
+        if (currentFile.mimeType?.contains("image") == true || currentFile.mimeType?.contains("video") == true) {
+            if (currentFile.thumbnailPath != null && File(currentFile.thumbnailPath).exists()) {
+                val fileUri = context?.let {
+                    FileProvider.getUriForFile(
+                        it,
+                        context.getPackageName() + ".files.provider",
+                        File(currentFile.thumbnailPath)
+                    )
+                }
+                context?.let {
+                    Glide.with(it)
+                        .load(fileUri)
+                        .apply(
+                            RequestOptions().placeholder(R.drawable.ic_upload_image)
+                                .error(R.drawable.ic_upload_image)
+                        )
+                        .into(holder.ivIcon)
+                }
+            } else {
+                thumbnailDownloadCallback!!.downloadThumbnail(currentFile, position)
+            }
+        } else
             holder.ivIcon.setImageResource(R.drawable.ic_upload_document)
         holder.downloadButton.setOnClickListener {
             onFileClickListener.onDownloadFileClickListener(position)
@@ -44,15 +88,20 @@ class FilesAdapter(
         holder.itemView.setOnClickListener {
             onFileClickListener.onFileClick(position)
         }
-        holder.itemView.setOnLongClickListener {
+
+        /*holder.itemView.setOnLongClickListener {
             onFileClickListener.onShareLongPressFileClickListener(position)
             true
-        }
+        }*/
     }
 
     override fun getItemCount(): Int {
         return files.size
     }
+}
+
+interface ThumbnailDownloadCallback {
+    fun downloadThumbnail(file: Files, position: Int)
 }
 
 interface FileClickListener {

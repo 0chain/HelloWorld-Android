@@ -1,11 +1,12 @@
 package org.zus.helloworld.ui.vult
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.media.MediaScannerConnection
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -16,25 +17,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.chrisbanes.photoview.PhotoView
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import kotlinx.coroutines.*
 import org.zus.helloworld.R
+import org.zus.helloworld.data.Files
 import org.zus.helloworld.databinding.VultFragmentBinding
 import org.zus.helloworld.ui.mainactivity.MainViewModel
-import org.zus.helloworld.utils.ExpirationTime
-import org.zus.helloworld.utils.StorageSizes
-import org.zus.helloworld.utils.Utils
+import org.zus.helloworld.utils.*
 import org.zus.helloworld.utils.Utils.Companion.getConvertedDateTime
 import org.zus.helloworld.utils.Utils.Companion.getConvertedSize
 import org.zus.helloworld.utils.Utils.Companion.getSizeInB
@@ -53,16 +57,22 @@ const val DATA_SHARDS = 2L
 const val PARITY_SHARDS = 2L
 val ALLOCATION_SIZE = 2L.getSizeInB(StorageSizes.GB)
 val EXPIRATION_SECONDS =
-    Date().time / 1000 + 720L.getTimeInNanoSeconds(ExpirationTime.Hour) / (1000000000)
+    (Date().time / 1000) + 721L.getTimeInNanoSeconds(ExpirationTime.Hour) / (1000000000)
 val LOCK_TOKENS: String = Zcncore.convertToValue(1.0)
+private const val REQUEST_FILES = 1
+private const val RESULT_ERROR = 64
 
-class VultFragment : Fragment(), FileClickListener {
+class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     private lateinit var binding: VultFragmentBinding
     private lateinit var vultViewModel: VultViewModel
     private lateinit var mainViewModel: MainViewModel
     var downloadPath = ""
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
+    private var previewDialog: Dialog? = null
+    private var previewLayout: View? = null
+    private var currentFilePosition = -1
+    private var filesAdapter: FilesAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -144,43 +154,118 @@ class VultFragment : Fragment(), FileClickListener {
             vultViewModel.listFiles("/")
             isRefresh(false)
         }
+        previewDialog =
+            Dialog(requireActivity(), android.R.style.Theme_Translucent_NoTitleBar_Fullscreen)
+        previewLayout = layoutInflater.inflate(R.layout.dialog_file_preview, null)
+        previewDialog!!.setContentView(previewLayout!!)
+        previewDialog!!.setCancelable(true)
 
         val documentPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
-                    val resultIntent: Intent? = result.data
-                    if (resultIntent != null) {
-                        /* Uploading files. */
-                        val uri = resultIntent.data!!
-                        val fileName = Utils(requireContext()).getFileName(uri)
-                        val filePath = makeFileCopyInCacheDir(uri)
-
-                        Log.i(TAG_VULT, "Uri: $uri")
-                        Log.i(TAG_VULT, "Uri path: ${uri.path}")
-                        Log.i(TAG_VULT, "File name: $fileName")
-                        Log.i(TAG_VULT, "File path: $filePath")
-
-                        CoroutineScope(Dispatchers.Main).launch {
-                            isRefresh(true)
-                            vultViewModel.uploadFileWithCallback(
-                                workDir = requireContext().filesDir.absolutePath,
-                                fileName = fileName,
-                                filePathURI = filePath,
-                                fileThumbnailPath = "",
-                                encryptFile = false,
-                                webStreaming = false,
-                                callback = uploadStatusCallback
-                            )
-                            isRefresh(false)
+                    val data: Intent? = result.data
+                    if (data?.clipData != null) {
+                        val count: Int = data.clipData!!.itemCount
+                        val jsonArray = JsonArray()
+                        val gson = Gson()
+                        for (i in 0 until count) {
+                            val fileUri: Uri = data.clipData!!.getItemAt(i).uri
+                            val fileName = Utils(requireContext()).getFileName(fileUri)
+                            context?.let {
+                                val file = from(it, fileUri, fileName)
+                                val uploadingFile: Files = Files.newUploadingFile(
+                                    fileName,
+                                    "/$fileName",
+                                    file.absolutePath,
+                                )
+                                uploadingFile.mimeType = Utils(requireContext()).getMimeType(file)
+                                val androidPath = context?.filesDir?.absolutePath + "/" + fileName
+                                uploadingFile.thumbnailPath =
+                                    getThumbnail(
+                                        it, file,
+                                        "/thumbnail/", fileName
+                                    )
+                                uploadingFile.setAndroidPath(androidPath)
+                                vultViewModel.addFileToMutableList(uploadingFile)
+                                val jsonObject = JsonObject()
+                                jsonObject.addProperty("remotePath", "/")
+                                jsonObject.addProperty("fileName", fileName)
+                                jsonObject.addProperty("encrypt", false)
+                                jsonObject.addProperty("filePath", androidPath)
+                                jsonObject.addProperty("thumbnailPath", uploadingFile.thumbnailPath)
+                                jsonArray.add(jsonObject)
+                            }
+                            Log.i(TAG_VULT, "Uri: $fileUri")
+                            Log.i(TAG_VULT, "Uri path: ${fileUri.path}")
+                            Log.i(TAG_VULT, "File name: $fileName")
                         }
+                        val jsonString = gson.toJson(jsonArray)
+                        isRefresh(true)
+                        GlobalScope.launch(Dispatchers.IO) {
+                            vultViewModel.uploadMultipleFilesWithCallback(
+                                workDir = requireContext().filesDir.absolutePath,
+                                multiUploadRequestBody = jsonString,
+                                callback = statusCallbackForMultiUpload
+                            )
+                        }
+                        isRefresh(false)
+                    } else if (data != null && data.data != null) {
+                        val fileUri = data.data
+                        val jsonArray = JsonArray()
+                        val gson = Gson()
+                        val fileName = fileUri?.let { Utils(requireContext()).getFileName(it) }
+                        context?.let {
+                            val file = from(it, fileUri, fileName)
+                            val uploadingFile: Files = Files.newUploadingFile(
+                                fileName,
+                                "/$fileName",
+                                file.absolutePath,
+                            )
+                            uploadingFile.mimeType = Utils(requireContext()).getMimeType(file)
+                            val androidPath = context?.filesDir?.absolutePath + "/" + fileName
+                            uploadingFile.thumbnailPath =
+                                fileName?.let { it1 ->
+                                    getThumbnail(
+                                        it, file,
+                                        "/thumbnail/", it1
+                                    )
+                                }
+                            uploadingFile.setAndroidPath(androidPath)
+                            vultViewModel.addFileToMutableList(uploadingFile)
+                            val jsonObject = JsonObject()
+                            jsonObject.addProperty("remotePath", "/")
+                            jsonObject.addProperty("fileName", fileName)
+                            jsonObject.addProperty("encrypt", false)
+                            jsonObject.addProperty("filePath", androidPath)
+                            jsonObject.addProperty("thumbnailPath", uploadingFile.thumbnailPath)
+                            jsonArray.add(jsonObject)
+                            Log.i(TAG_VULT, "Uri: $fileUri")
+                            Log.i(TAG_VULT, "Uri path: ${fileUri?.path}")
+                            Log.i(TAG_VULT, "File name: $fileName")
+                        }
+                        val jsonString = gson.toJson(jsonArray)
+
+                        isRefresh(true)
+                        GlobalScope.launch(Dispatchers.IO) {
+                            vultViewModel.uploadMultipleFilesWithCallback(
+                                workDir = requireContext().filesDir.absolutePath,
+                                multiUploadRequestBody = jsonString,
+                                callback = statusCallbackForMultiUpload
+                            )
+                        }
+                        isRefresh(false)
                     }
+                } else if (result.resultCode == RESULT_ERROR) {
+                    makeToast("Error picking image gallery")
+                } else {
+                    makeToast("Not selected")
                 }
             }
 
-        val photoPicker =
+        /*val photoPicker =
             registerForActivityResult(PickVisualMedia()) { uri ->
                 if (uri != null) {
-                    /* Uploading files. */
+                    *//* Uploading files. *//*
                     val fileName = Utils(requireContext()).getFileName(uri)
                     val filePath = makeFileCopyInCacheDir(uri)
 
@@ -203,34 +288,43 @@ class VultFragment : Fragment(), FileClickListener {
                         isRefresh(false)
                     }
                 }
-            }
+            }*/
 
         binding.tvStorageUsed.text =
             getString(R.string.storage_used, 0.getConvertedSize(), 0.getConvertedSize())
 
-        val filesAdapter = FilesAdapter(mutableListOf(), this)
+        filesAdapter = FilesAdapter(mutableListOf(), this, context)
+        filesAdapter!!.setThumbnailDownloadCallback(this)
         binding.rvAllFiles.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAllFiles.adapter = filesAdapter
 
+        vultViewModel.notifyDataSetChanged.observe(viewLifecycleOwner) { dataChanged ->
+            if (dataChanged) {
+                filesAdapter!!.notifyDataSetChanged()
+                vultViewModel.makeNotifyDataSetChangedFalse()
+            }
 
+        }
 
-        vultViewModel.files.observe(viewLifecycleOwner) { files ->
+        vultViewModel.filesList.observe(viewLifecycleOwner) { files ->
             if (files != null)
-                filesAdapter.files = files
+                filesAdapter!!.files = files
             else
-                filesAdapter.files = mutableListOf()
-            filesAdapter.notifyDataSetChanged()
+                filesAdapter!!.files = mutableListOf()
+            filesAdapter!!.notifyDataSetChanged()
         }
 
         binding.cvUploadImage.setOnClickListener {
-            photoPicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "image/*"
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            documentPicker.launch(intent)
         }
 
         binding.cvUploadDocument.setOnClickListener {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
-            }
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             documentPicker.launch(intent)
         }
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -243,6 +337,10 @@ class VultFragment : Fragment(), FileClickListener {
 
 
         return binding.root
+    }
+
+    private fun makeToast(message: String) {
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun updateTotalSizeProgress() {
@@ -307,35 +405,25 @@ class VultFragment : Fragment(), FileClickListener {
     }
 
     private fun isRefresh(bool: Boolean) {
-        if (!bool) {
-            requireActivity().runOnUiThread {
-                requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-            }
-        } else {
-            requireActivity().runOnUiThread {
-                requireActivity().window.setFlags(
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                )
-            }
-        }
-        requireActivity().runOnUiThread {
-            binding.swipeRefreshLayout.isRefreshing = bool
-        }
+        requireActivity().window.setFlags(
+            if (bool) WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE else 0,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        )
+        binding.swipeRefreshLayout.isRefreshing = bool
     }
 
     override fun onShareLongPressFileClickListener(position: Int) {
         isRefresh(true)
         Snackbar.make(
             requireView(),
-            "Generating Auth Ticket for ${vultViewModel.files.value!![position].name}",
+            "Generating Auth Ticket for ${vultViewModel.filesList.value!![position].name}",
             Snackbar.LENGTH_SHORT
         ).show()
         Log.i(
             TAG_VULT,
-            "File long clicked: ${vultViewModel.files.value!![position].name}"
+            "File long clicked: ${vultViewModel.filesList.value!![position].name}"
         )
-        val file = vultViewModel.files.value!![position]
+        val file = vultViewModel.filesList.value!![position]
         val clipboardManager =
             requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         CoroutineScope(Dispatchers.Main).launch {
@@ -372,136 +460,233 @@ class VultFragment : Fragment(), FileClickListener {
         }
     }
 
+    private fun clearLocalFile(localPath: String) {
+        val file = File(localPath)
+        if (file.exists()) {
+            file.delete()
+        }
+    }
+
     override fun onDownloadFileClickListener(filePosition: Int) {
         isRefresh(true)
+        val files = vultViewModel.filesList.value!![filePosition]
+        if (files.getAndroidPath() == null || files.getAndroidPath()!!.isEmpty()) {
+            files.setAndroidPath(requireContext().filesDir.absolutePath + files.remotePath)
+            clearLocalFile(files.getAndroidPath()!!)
+            vultViewModel.updateFileWithAndroidPath(files.remotePath, files.getAndroidPath()!!)
+        }
+        makeDirectories(
+            requireContext(),
+            files.remotePath.substring(0, files.remotePath.lastIndexOf("/") + 1)
+        )
+
         Log.i(
             TAG_VULT,
-            "File clicked: ${vultViewModel.files.value!![filePosition].name}"
+            "File clicked: ${files.name}"
         )
-        //Create new folder in external directory.
         CoroutineScope(Dispatchers.Main).launch {
-            vultViewModel.downloadFileWithCallback(
-                vultViewModel.files.value!![filePosition].name,
-                downloadPath, object : StatusCallbackMocked {
-                    override fun commitMetaCompleted(
-                        p0: String?,
-                        p1: String?,
-                        p2: java.lang.Exception?,
-                    ) {
-                        Log.d(TAG_VULT, "commitMetaCompleted: ")
-                        Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
-                        Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
-                        Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
-                    }
-
-                    override fun completed(
-                        p0: String?,
-                        p1: String?,
-                        p2: String?,
-                        p3: String?,
-                        p4: Long,
-                        p5: Long,
-                    ) {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            isRefresh(false)
-                            val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
-                                setDataAndType(
-                                    Utils(requireContext()).getUriForFile(
-                                        File(
-                                            downloadPath,
-                                            vultViewModel.files.value!![filePosition].name
-                                        )
-                                    ),
-                                    vultViewModel.files.value!![filePosition].mimetype
-                                )
-                                flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+            withContext(Dispatchers.IO) {
+                files.remotePath.let {
+                    vultViewModel.downloadFileWithCallback(
+                        it,
+                        files.getAndroidPath()!!, object : StatusCallbackMocked {
+                            override fun commitMetaCompleted(
+                                p0: String?,
+                                p1: String?,
+                                p2: java.lang.Exception?,
+                            ) {
+                                Log.d(TAG_VULT, "commitMetaCompleted: ")
+                                Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
+                                Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
+                                Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
                             }
-                            try {
-                                startActivity(intentOpenDownloadedFile)
-                            } catch (e: Exception) {
-                                Log.e(TAG_VULT, "Error: ${e.message}")
+
+                            override fun completed(
+                                p0: String?,
+                                p1: String?,
+                                p2: String?,
+                                p3: String?,
+                                p4: Long,
+                                p5: Long,
+                            ) {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    isRefresh(false)
+                                    if (context?.let { it1 ->
+                                            copyFileToDownloads(
+                                                it1,
+                                                vultViewModel.filesList.value!![filePosition]
+                                            )
+                                        } == true) {
+                                        val snackbar = Snackbar
+                                            .make(
+                                                binding.root,
+                                                "file downloaded",
+                                                Snackbar.LENGTH_SHORT
+                                            )
+                                        snackbar.show()
+                                    } else {
+                                        val snackbar = Snackbar
+                                            .make(
+                                                binding.root,
+                                                "Failed to download file",
+                                                Snackbar.LENGTH_SHORT
+                                            )
+                                        snackbar.setBackgroundTint(Color.RED)
+                                        snackbar.show()
+                                    }
+                                }
                             }
-                        }
-                    }
 
-                    override fun error(
-                        p0: String?,
-                        p1: String?,
-                        p2: Long,
-                        p3: java.lang.Exception?,
-                    ) {
-                        Log.d(TAG_VULT, "error: ")
-                        Log.d(TAG_VULT, "error: p0: $p0")
-                        Log.d(TAG_VULT, "error: p1: $p1")
-                        Log.d(TAG_VULT, "error: p2: $p2")
-                        Log.d(TAG_VULT, "error: p3: $p3")
-                        isRefresh(false)
-                    }
+                            override fun error(
+                                p0: String?,
+                                p1: String?,
+                                p2: Long,
+                                p3: java.lang.Exception?,
+                            ) {
+                                Log.d(TAG_VULT, "error: ")
+                                Log.d(TAG_VULT, "error: p0: $p0")
+                                Log.d(TAG_VULT, "error: p1: $p1")
+                                Log.d(TAG_VULT, "error: p2: $p2")
+                                Log.d(TAG_VULT, "error: p3: $p3")
+                                isRefresh(false)
+                            }
 
-                    override fun inProgress(
-                        p0: String?,
-                        p1: String?,
-                        p2: Long,
-                        p3: Long,
-                        p4: ByteArray?,
-                    ) {
-                        Log.d(TAG_VULT, "inProgress: ")
-                        Log.d(TAG_VULT, "inProgress: p0: $p0")
-                        Log.d(TAG_VULT, "inProgress: p1: $p1")
-                        Log.d(TAG_VULT, "inProgress: p2: $p2")
-                        Log.d(TAG_VULT, "inProgress: p3: $p3")
-                        Log.d(TAG_VULT, "inProgress: p4: $p4")
-                    }
+                            override fun inProgress(
+                                p0: String?,
+                                p1: String?,
+                                p2: Long,
+                                p3: Long,
+                                p4: ByteArray?,
+                            ) {
+                                Log.d(TAG_VULT, "inProgress: ")
+                                Log.d(TAG_VULT, "inProgress: p0: $p0")
+                                Log.d(TAG_VULT, "inProgress: p1: $p1")
+                                Log.d(TAG_VULT, "inProgress: p2: $p2")
+                                Log.d(TAG_VULT, "inProgress: p3: $p3")
+                                Log.d(TAG_VULT, "inProgress: p4: $p4")
+                            }
 
-                    override fun repairCompleted(p0: Long) {
-                        Log.d(TAG_VULT, "repairCompleted: ")
-                        Log.d(TAG_VULT, "repairCompleted: p0: $p0")
-                    }
+                            override fun repairCompleted(p0: Long) {
+                                Log.d(TAG_VULT, "repairCompleted: ")
+                                Log.d(TAG_VULT, "repairCompleted: p0: $p0")
+                            }
 
-                    override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
-                        Snackbar.make(
-                            binding.root,
-                            "Downloading ${vultViewModel.files.value!![filePosition].name}",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                    }
-                })
+                            override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+                                Snackbar.make(
+                                    binding.root,
+                                    "Downloading ${vultViewModel.filesList.value!![filePosition].name}",
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            }
+                        })
+                }
+            }
             isRefresh(false)
         }
     }
 
-    override fun onFileClick(filePosition: Int) {
-        val file = File(
-            downloadPath,
-            vultViewModel.files.value!![filePosition].name
+    fun previewAction(position: Int, next: Boolean) {
+        var position = position
+        if (position < 0) position =
+            filesAdapter!!.itemCount - 1 else if (position == filesAdapter!!.getItemCount()) position =
+            0
+        val selected: Files = vultViewModel.filesList.value!![position]
+        if (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
+                .startsWith("video/")
+        ) viewFileAction(position, selected) else {
+            if (next) previewAction(position + 1, true) else previewAction(position - 1, false)
+        }
+    }
+
+    fun showPreviewDialog(position: Int, files: Files) {
+        val titleText = previewLayout!!.findViewById<TextView>(R.id.fileName)
+        titleText.setText(files.name)
+        val btnNext = previewLayout!!.findViewById<ImageView>(R.id.btnNext)
+        btnNext.setOnClickListener { previewAction(position + 1, true) }
+        val btnPrevious = previewLayout!!.findViewById<ImageView>(R.id.btnPrevious)
+        btnPrevious.setOnClickListener { previewAction(position - 1, false) }
+        // Dismiss the dialog when the back button is clicked
+        val backButton = previewLayout!!.findViewById<ImageView>(R.id.headerBack)
+        backButton.setOnClickListener { previewDialog!!.dismiss() }
+        if (!previewDialog!!.isShowing) previewDialog!!.show()
+    }
+
+    fun openFile(position: Int, files: Files) {
+        currentFilePosition = position
+        var file: File? = null
+        if (files.getAndroidPath() != null) file = File(files.getAndroidPath())
+        val mimeType: String? = files.mimeType
+        showPreviewDialog(position, files)
+        if (file == null || !file.exists()) {
+            if (mimeType?.startsWith("image/") == true || mimeType?.startsWith("video/") == true) {
+                val thumbnailPath: String? = files.thumbnailPath
+                if (thumbnailPath != null) {
+                    val thumbnailFile: File? = files.thumbnailPath?.let { File(it) }
+                    val filePreview: PhotoView = previewLayout?.findViewById(R.id.filePreview)!!
+                    if (thumbnailFile?.exists() == true) filePreview.setImageURI(
+                        Uri.fromFile(
+                            thumbnailFile
+                        )
+                    )
+                }
+            }
+            return
+        }
+
+        // File exists, proceed with opening the file
+        val fileUri = FileProvider.getUriForFile(
+            requireActivity(),
+            requireActivity().applicationContext.packageName + ".files.provider",
+            file
         )
-        Log.i(TAG_VULT, "File clicked: ${file.absolutePath}")
-        MediaScannerConnection.scanFile(
-            requireContext(), arrayOf(file.absolutePath), null
-        ) { _, uri ->
-            if (uri == null) {
-                Snackbar.make(
-                    binding.root,
-                    "No file found Please Downloaing the File...",
-                    Snackbar.LENGTH_SHORT
-                ).show()
-                onDownloadFileClickListener(filePosition)
+        if (mimeType != null && mimeType.startsWith("image/")) {
+            val filePreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
+            filePreview.setImageURI(Uri.fromFile(File(files.thumbnailPath)))
+        }
+    }
+
+    fun updateFilePreview(position: Int, file: Files) {
+        if (currentFilePosition == position) {
+            val mimeType: String? = file.mimeType
+            if (mimeType != null && mimeType.startsWith("image/")) {
+                val filePreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
+                filePreview.setImageURI(Uri.fromFile(File(file.getAndroidPath())))
             } else {
-                Log.i("onScanCompleted", uri.path ?: "No file found")
-                val intentOpenDownloadedFile = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, vultViewModel.files.value!![filePosition].mimetype)
-                    flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+                var f: File? = null
+                if (file.getAndroidPath() != null) f = File(file.getAndroidPath())
+                val fileUri = f?.let {
+                    FileProvider.getUriForFile(
+                        requireActivity(),
+                        requireActivity().applicationContext.packageName + ".files.provider",
+                        it
+                    )
                 }
-                try {
-                    startActivity(intentOpenDownloadedFile)
-                } catch (e: Exception) {
-                    Log.e(TAG_VULT, "Error: ${e.message}")
-                }
+                if (previewDialog?.isShowing == true) previewDialog!!.dismiss()
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.data = fileUri
+                val j = Intent.createChooser(intent, "Choose an application to open with:")
+                startActivity(j)
             }
         }
     }
 
-    private val uploadStatusCallback = object : StatusCallbackMocked {
+    override fun onFileClick(filePosition: Int) {
+        val selectedFile = vultViewModel.filesList.value!![filePosition]
+        viewFileAction(filePosition, selectedFile)
+
+    }
+
+    private fun viewFileAction(filePosition: Int, selectedFile: Files) {
+        openFile(filePosition, selectedFile)
+        if (selectedFile.getAndroidPath()?.let { File(it).exists() } == true) {
+            updateFilePreview(filePosition, selectedFile)
+            return
+        }
+        onDownloadFileClickListener(filePosition)
+    }
+
+    private val statusCallbackForMultiUpload = object : StatusCallbackMocked {
         override fun commitMetaCompleted(p0: String?, p1: String?, p2: Exception?) {
             Log.d(TAG_VULT, "commitMetaCompleted: ")
             Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
@@ -524,6 +709,7 @@ class VultFragment : Fragment(), FileClickListener {
             Log.d(TAG_VULT, "completed: p3: $p3")
             Log.d(TAG_VULT, "completed: p4: $p4")
             Log.d(TAG_VULT, "completed: p5: $p5")
+            vultViewModel.modifyUploadStatusToCompleteForFile(p1)
             CoroutineScope(vultViewModel.viewModelScope.coroutineContext).launch {
                 vultViewModel.listFiles("/")
             }
@@ -556,6 +742,7 @@ class VultFragment : Fragment(), FileClickListener {
             Log.d(TAG_VULT, "inProgress: p2: $p2")
             Log.d(TAG_VULT, "inProgress: p3: $p3")
             Log.d(TAG_VULT, "inProgress: p4: $p4")
+            vultViewModel.modifyProgressForFile(p1, p3)
         }
 
         override fun repairCompleted(p0: Long) {
@@ -569,6 +756,7 @@ class VultFragment : Fragment(), FileClickListener {
             Log.d(TAG_VULT, "started: p1: $p1")
             Log.d(TAG_VULT, "started: p2: $p2")
             Log.d(TAG_VULT, "started: p3: $p3")
+            vultViewModel.modifyTotalSizeForFile(p1, p3)
             Snackbar.make(
                 binding.root,
                 "Uploading file...",
@@ -576,4 +764,66 @@ class VultFragment : Fragment(), FileClickListener {
             ).show()
         }
     }
+
+    override fun downloadThumbnail(file: Files, position: Int) {
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+                if (file.thumbnailPath == null || file.thumbnailPath!!.isEmpty()) {
+                    file.thumbnailPath =
+                        requireContext().filesDir.absolutePath + "/thumbnail" + file.remotePath
+                    vultViewModel.updateFileWithThumbNailPath(file.remotePath, file.thumbnailPath!!)
+                }
+                makeDirectories(
+                    requireContext(),
+                    "/thumbnail" + file.remotePath
+                        .substring(0, file.remotePath.lastIndexOf("/") + 1)
+                )
+                vultViewModel.downloadThumbnail(file, position, object : StatusCallbackMocked {
+                    override fun commitMetaCompleted(
+                        p0: String?,
+                        p1: String?,
+                        p2: java.lang.Exception?
+                    ) {
+
+                    }
+
+                    override fun completed(
+                        p0: String?,
+                        p1: String?,
+                        p2: String?,
+                        p3: String?,
+                        p4: Long,
+                        p5: Long
+                    ) {
+                        filesAdapter!!.notifyDataSetChanged()
+                    }
+
+                    override fun error(
+                        p0: String?,
+                        p1: String?,
+                        p2: Long,
+                        p3: java.lang.Exception?
+                    ) {
+                    }
+
+                    override fun inProgress(
+                        p0: String?,
+                        p1: String?,
+                        p2: Long,
+                        p3: Long,
+                        p4: ByteArray?
+                    ) {
+                    }
+
+                    override fun repairCompleted(p0: Long) {
+                    }
+
+                    override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+                    }
+
+                });
+            }
+        }
+    }
+
 }
