@@ -28,7 +28,7 @@ class DetailsBottomSheetFragment(
         /* Header title. */
         binding.tvHeaderTitle.text = detailsModel.title
         binding.btnBack.setOnClickListener {
-            findNavController().popBackStack()
+            this.dismiss()
         }
 
         binding.tvDetails.text = detailsModel.value
