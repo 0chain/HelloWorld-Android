@@ -518,6 +518,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                                 vultViewModel.filesList.value!![filePosition]
                                             )
                                         } == true) {
+                                        updateFilePreview(filePosition, files)
                                         val snackbar = Snackbar
                                             .make(
                                                 binding.root,
@@ -549,7 +550,9 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                 Log.d(TAG_VULT, "error: p1: $p1")
                                 Log.d(TAG_VULT, "error: p2: $p2")
                                 Log.d(TAG_VULT, "error: p3: $p3")
-                                isRefresh(false)
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    isRefresh(false)
+                                }
                             }
 
                             override fun inProgress(
@@ -593,7 +596,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             0
         val selected: Files = vultViewModel.filesList.value!![position]
         if (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
-                .startsWith("video/")
+                .startsWith("video/") || selected.mimeType!! == "application/pdf"
         ) viewFileAction(position, selected) else {
             if (next) previewAction(position + 1, true) else previewAction(position - 1, false)
         }
@@ -639,8 +642,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     }
 
     private fun updateFilePreview(position: Int, file: Files) {
-        if (currentFilePosition == position) {
-            val actualFile = File(file.getAndroidPath())
+        val actualFile = File(file.getAndroidPath())
+        if (currentFilePosition == position && actualFile.exists()) {
             val mimeType: String? = file.mimeType
             val photoPreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
             val pdfPreview: PDFView = previewLayout!!.findViewById(R.id.pdfPreview)
@@ -651,7 +654,11 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             } else if (mimeType.equals("application/pdf")){
                 pdfPreview.visibility = View.VISIBLE
                 photoPreview.visibility = View.INVISIBLE
-                pdfPreview.fromFile(actualFile).load()
+                try {
+                    pdfPreview.fromFile(actualFile).load()
+                } catch (e: Exception){
+                    e.message?.let { Log.e(TAG_VULT, it) }
+                }
             } else {
                 var f: File? = null
                 if (file.getAndroidPath() != null) f = actualFile
@@ -733,7 +740,9 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                         "Error: ${p3?.message}",
                 Snackbar.LENGTH_SHORT
             ).show()
-            isRefresh(false)
+            CoroutineScope(Dispatchers.Main).launch {
+                isRefresh(false)
+            }
         }
 
         override fun inProgress(p0: String?, p1: String?, p2: Long, p3: Long, p4: ByteArray?) {

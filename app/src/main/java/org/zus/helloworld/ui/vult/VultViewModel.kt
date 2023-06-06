@@ -230,23 +230,23 @@ class VultViewModel : ViewModel() {
 
     /**
      *  Downloads a file from the current allocation.
-     *  @param fileName Name of the file
+     *  @param remotePath Name of the file
      *  @param downloadPath Download path (file location in the current android filesystem)
      *  @param callback Status callback (to monitor the whole download process)
      */
     suspend fun downloadFileWithCallback(
-        fileName: String,
+        remotePath: String,
         downloadPath: String,
         callback: StatusCallbackMocked,
     ) {
         withContext(Dispatchers.IO) {
             Log.i(TAG_VULT, "downloadFile: ")
-            Log.i(TAG_VULT, "downloadFile: fileName: $fileName")
+            Log.i(TAG_VULT, "downloadFile: fileName: $remotePath")
             Log.i(TAG_VULT, "downloadFile: downloadPath: $downloadPath")
             try {
-                getAllocation()?.downloadFile(
+                zbox.Zbox.downloadFile(allocationId,
                     /* remote path =*/
-                    "/$fileName",
+                    remotePath,
                     /* file local download path =*/
                     downloadPath,
                     callback
