@@ -101,7 +101,7 @@ To create a wallet you need to call the `Zcncore.createWalletOffline()` function
 - `mnemonics` - Mnemonics are a set of words that are used to generate a wallet. Mnemonics are used
   to generate a wallet for a user.
 
-# Hackathon Discord Link
+## Hackathon Discord Link
 https://discord.gg/7JSzwpcK55
 
 ## A short video clip conveying the features of HelloWorld-Android app
