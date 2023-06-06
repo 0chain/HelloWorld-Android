@@ -44,60 +44,6 @@ private fun copy(input: InputStream, output: FileOutputStream): Long {
 }
 
 @Throws(IOException::class)
-fun getThumbnail2(context: Context, file: File, thumbnailRoot: String, fileName: String): String? {
-    return try {
-        var mimeType: String? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mimeType = Files.probeContentType(file.toPath())
-        }
-        val options = BitmapFactory.Options()
-        options.inJustDecodeBounds = true
-        options.inSampleSize = 6
-        var inputStream = FileInputStream(file)
-        if (mimeType != null && mimeType.startsWith("video")) {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(file.absolutePath)
-            val frame = retriever.frameAtTime
-            options.outWidth = frame!!.width
-            options.outHeight = frame.height
-        } else {
-            BitmapFactory.decodeStream(inputStream, null, options)
-        }
-        inputStream.close()
-        val REQUIRED_SIZE = 75
-        var scale = 1
-        while (options.outWidth / scale / 2 >= REQUIRED_SIZE &&
-            options.outHeight / scale / 2 >= REQUIRED_SIZE
-        ) {
-            scale *= 2
-        }
-        val options1 = BitmapFactory.Options()
-        options1.inSampleSize = scale
-        inputStream = FileInputStream(file)
-        var selectedBitmap: Bitmap? = null
-        selectedBitmap = if (mimeType != null && mimeType.startsWith("video")) {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(file.absolutePath)
-            val frame = retriever.frameAtTime
-            Bitmap.createScaledBitmap(
-                frame!!,
-                options.outWidth / scale,
-                options.outHeight / scale,
-                false
-            )
-        } else {
-            BitmapFactory.decodeStream(inputStream, null, options1)
-        }
-        inputStream.close()
-        val thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
-        val outputStream = FileOutputStream(thumbnailFile)
-        selectedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-        if (thumbnailFile.exists()) thumbnailFile.absolutePath else ""
-    } catch (e: Exception) {
-        ""
-    }
-}
-
 fun getThumbnail(context: Context, file: File, thumbnailRoot: String, fileName: String): String? {
     return try {
         var mimeType: String? = null
@@ -143,14 +89,18 @@ fun getThumbnail(context: Context, file: File, thumbnailRoot: String, fileName: 
             BitmapFactory.decodeStream(inputStream, null, options1)
         }
         inputStream.close()
-        val thumbnailFileDir = File(context.filesDir, thumbnailRoot.substring(1))
-        thumbnailFileDir.mkdirs() // Create parent directories if they don't exist
-        val thumbnailFile = File(thumbnailFileDir, fileName)
+        if (!makeDirectories(
+                context,
+                thumbnailRoot.substring(1, thumbnailRoot.length - 1)
+            )
+        ) {
+            throw java.lang.RuntimeException("Failed to create directory")
+        }
+        val thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
         val outputStream = FileOutputStream(thumbnailFile)
         selectedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-        outputStream.close()
         if (thumbnailFile.exists()) thumbnailFile.absolutePath else ""
-    } catch (e: Exception) {
+    } catch (e: java.lang.Exception) {
         ""
     }
 }

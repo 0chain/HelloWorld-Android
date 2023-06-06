@@ -30,11 +30,11 @@ import java.util.*
 
 class Utils(private var applicationContext: Context) {
     companion object {
-        const val ATLUS_BASE_URL = "https://dev.atlus.cloud"
+        const val ATLUS_BASE_URL = "https://atlus.cloud"
 
         fun String.getAtlusURL(): String {
             val hash = this
-            return "$ATLUS_BASE_URL/transaction-details/$hash"
+            return "$ATLUS_BASE_URL/transaction-details/$hash?network=demo.zus.network"
         }
 
         fun Int.getConvertedDateTime(): String {
@@ -545,7 +545,9 @@ class Utils(private var applicationContext: Context) {
         return false
     }
     fun getMimeType(file: File): String? {
-        val fileExtension = MimeTypeMap.getFileExtensionFromUrl(file.path)
+        val fileName = file.name
+        val fileExtension = fileName.substringAfterLast(".", "")
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
     }
+
 }
