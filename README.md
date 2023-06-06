@@ -75,7 +75,7 @@ Zcncore.init(configJsonString)
 ```
 
 ## How to create a wallet.
-To create a wallet you need to call the `Zcncore.createWallet` function. This function takes a 
+To create a wallet you need to call the `Zcncore.createWalletOffline()` function. This function takes a 
 ## Some common terms used in our code and blockchain
 
 - `blobber` - A blobber is a storage provider. It is a server that stores files on behalf of users.
