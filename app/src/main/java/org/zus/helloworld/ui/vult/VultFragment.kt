@@ -28,6 +28,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.barteksc.pdfviewer.PDFView
 import com.github.chrisbanes.photoview.PhotoView
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
@@ -611,7 +612,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         if (!previewDialog!!.isShowing) previewDialog!!.show()
     }
 
-    fun openFile(position: Int, files: Files) {
+    private fun openFile(position: Int, files: Files) {
         currentFilePosition = position
         var file: File? = null
         if (files.getAndroidPath() != null) file = File(files.getAndroidPath())
@@ -629,31 +630,31 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                         )
                     )
                 }
+            }else if(mimeType.equals("application/pdf")){
+                val filePreview: PhotoView = previewLayout?.findViewById(R.id.filePreview)!!
+                filePreview.setImageResource(R.drawable.ic_upload_document)
             }
             return
         }
-
-        // File exists, proceed with opening the file
-        val fileUri = FileProvider.getUriForFile(
-            requireActivity(),
-            requireActivity().applicationContext.packageName + ".files.provider",
-            file
-        )
-        if (mimeType != null && mimeType.startsWith("image/")) {
-            val filePreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
-            filePreview.setImageURI(Uri.fromFile(File(files.thumbnailPath)))
-        }
     }
 
-    fun updateFilePreview(position: Int, file: Files) {
+    private fun updateFilePreview(position: Int, file: Files) {
         if (currentFilePosition == position) {
+            val actualFile = File(file.getAndroidPath())
             val mimeType: String? = file.mimeType
+            val photoPreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
+            val pdfPreview: PDFView = previewLayout!!.findViewById(R.id.pdfPreview)
             if (mimeType != null && mimeType.startsWith("image/")) {
-                val filePreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
-                filePreview.setImageURI(Uri.fromFile(File(file.getAndroidPath())))
+                photoPreview.visibility=View.VISIBLE
+                pdfPreview.visibility = View.INVISIBLE
+                photoPreview.setImageURI(Uri.fromFile(actualFile))
+            } else if (mimeType.equals("application/pdf")){
+                pdfPreview.visibility = View.VISIBLE
+                photoPreview.visibility = View.INVISIBLE
+                pdfPreview.fromFile(actualFile).load()
             } else {
                 var f: File? = null
-                if (file.getAndroidPath() != null) f = File(file.getAndroidPath())
+                if (file.getAndroidPath() != null) f = actualFile
                 val fileUri = f?.let {
                     FileProvider.getUriForFile(
                         requireActivity(),
