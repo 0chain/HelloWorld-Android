@@ -178,11 +178,11 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                             val fileExtension = fileName.substring(extensionIndex)
                             var newFileName = fileName
                             var counter = 1
-                            while (newFilesList.any{it.name==newFileName}) {
+                            while (newFilesList.any { it.name == newFileName }) {
                                 newFileName = "$fileNameWithoutExtension($counter)$fileExtension"
                                 counter++
                             }
-                            fileName=newFileName
+                            fileName = newFileName
                             context?.let {
                                 val file = from(it, fileUri, fileName)
                                 val uploadingFile: Files = Files.newUploadingFile(
@@ -232,11 +232,11 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                         val fileExtension = fileName.substring(extensionIndex)
                         var newFileName = fileName
                         var counter = 1
-                        while (newFilesList.any{it.name==newFileName}) {
+                        while (newFilesList.any { it.name == newFileName }) {
                             newFileName = "$fileNameWithoutExtension($counter)$fileExtension"
                             counter++
                         }
-                        fileName=newFileName
+                        fileName = newFileName
                         context?.let {
                             val file = from(it, fileUri, fileName)
                             val uploadingFile: Files = Files.newUploadingFile(
@@ -534,30 +534,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                             ) {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     isRefresh(false)
-                                    if (context?.let { it1 ->
-                                            copyFileToDownloads(
-                                                it1,
-                                                vultViewModel.filesList.value!![filePosition]
-                                            )
-                                        } == true) {
-                                        updateFilePreview(filePosition, files)
-                                        val snackbar = Snackbar
-                                            .make(
-                                                binding.root,
-                                                "file downloaded",
-                                                Snackbar.LENGTH_SHORT
-                                            )
-                                        snackbar.show()
-                                    } else {
-                                        val snackbar = Snackbar
-                                            .make(
-                                                binding.root,
-                                                "Failed to download file",
-                                                Snackbar.LENGTH_SHORT
-                                            )
-                                        snackbar.setBackgroundTint(Color.RED)
-                                        snackbar.show()
-                                    }
+                                    updateFilePreview(filePosition, files)
                                 }
                             }
 
@@ -574,6 +551,13 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                 Log.d(TAG_VULT, "error: p3: $p3")
                                 CoroutineScope(Dispatchers.Main).launch {
                                     isRefresh(false)
+                                    val snackbar = Snackbar
+                                        .make(
+                                            binding.root,
+                                            "failed to download file for viewing",
+                                            Snackbar.LENGTH_SHORT
+                                        )
+                                    snackbar.show()
                                 }
                             }
 
@@ -617,9 +601,10 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             filesAdapter!!.itemCount - 1 else if (position == filesAdapter!!.getItemCount()) position =
             0
         val selected: Files = vultViewModel.filesList.value!![position]
-        if (selected.mimeType!=null && (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
+        if (selected.mimeType != null && (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
                 .startsWith("video/") || selected.mimeType!! == "application/pdf"
-                    )) viewFileAction(position, selected) else {
+                    )
+        ) viewFileAction(position, selected) else {
             if (next) previewAction(position + 1, true) else previewAction(position - 1, false)
         }
     }
@@ -655,7 +640,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                         )
                     )
                 }
-            }else if(mimeType.equals("application/pdf")){
+            } else if (mimeType.equals("application/pdf")) {
                 val filePreview: PhotoView = previewLayout?.findViewById(R.id.filePreview)!!
                 filePreview.setImageResource(R.drawable.ic_upload_document)
             }
@@ -670,15 +655,15 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             val photoPreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
             val pdfPreview: PDFView = previewLayout!!.findViewById(R.id.pdfPreview)
             if (mimeType != null && mimeType.startsWith("image/")) {
-                photoPreview.visibility=View.VISIBLE
+                photoPreview.visibility = View.VISIBLE
                 pdfPreview.visibility = View.INVISIBLE
                 photoPreview.setImageURI(Uri.fromFile(actualFile))
-            } else if (mimeType.equals("application/pdf")){
+            } else if (mimeType.equals("application/pdf")) {
                 pdfPreview.visibility = View.VISIBLE
                 photoPreview.visibility = View.INVISIBLE
                 try {
                     pdfPreview.fromFile(actualFile).load()
-                } catch (e: Exception){
+                } catch (e: Exception) {
                     e.message?.let { Log.e(TAG_VULT, it) }
                 }
             } else {
@@ -693,7 +678,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 }
                 if (previewDialog?.isShowing == true) previewDialog!!.dismiss()
                 val intent = Intent(Intent.ACTION_VIEW)
-                intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.flags =
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
                 intent.data = fileUri
                 val j = Intent.createChooser(intent, "Choose an application to open with:")
                 startActivity(j)
@@ -714,7 +700,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             TAG_VULT,
             "File download clicked: ${files.name}"
         )
-        val downloadDirectoryPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+        val downloadDirectoryPath =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 files.remotePath.let {
@@ -742,13 +729,13 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                             ) {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     isRefresh(false)
-                                        val snackbar = Snackbar
-                                            .make(
-                                                binding.root,
-                                                "file downloaded",
-                                                Snackbar.LENGTH_SHORT
-                                            )
-                                        snackbar.show()
+                                    val snackbar = Snackbar
+                                        .make(
+                                            binding.root,
+                                            "file downloaded",
+                                            Snackbar.LENGTH_SHORT
+                                        )
+                                    snackbar.show()
                                 }
                             }
 
@@ -765,7 +752,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                 Log.d(TAG_VULT, "error: p3: $p3")
                                 CoroutineScope(Dispatchers.Main).launch {
                                     isRefresh(false)
-                                    if(p3?.message?.contains("Local file already exists")==true){
+                                    if (p3?.message?.contains("Local file already exists") == true) {
                                         val snackbar = Snackbar
                                             .make(
                                                 binding.root,
@@ -773,7 +760,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                                 Snackbar.LENGTH_SHORT
                                             )
                                         snackbar.show()
-                                    }else{
+                                    } else {
                                         val snackbar = Snackbar
                                             .make(
                                                 binding.root,
