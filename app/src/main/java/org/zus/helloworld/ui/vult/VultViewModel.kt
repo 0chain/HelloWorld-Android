@@ -253,6 +253,7 @@ class VultViewModel : ViewModel() {
                 )
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "downloadFile Exception: ", e)
+                callback.error(allocationId, remotePath,0, e)
             }
         }
     }

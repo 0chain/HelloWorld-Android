@@ -106,6 +106,7 @@ interface ThumbnailDownloadCallback {
 
 interface FileClickListener {
     fun onShareLongPressFileClickListener(position: Int)
-    fun onDownloadFileClickListener(filePosition: Int)
+    fun onDownloadToOpenFileClickListener(filePosition: Int)
     fun onFileClick(filePosition: Int)
+    fun onDownloadFileClickListener(position: Int)
 }

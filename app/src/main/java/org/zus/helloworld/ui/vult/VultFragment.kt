@@ -171,7 +171,18 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                         val gson = Gson()
                         for (i in 0 until count) {
                             val fileUri: Uri = data.clipData!!.getItemAt(i).uri
-                            val fileName = Utils(requireContext()).getFileName(fileUri)
+                            val newFilesList = vultViewModel.filesList.value ?: mutableListOf()
+                            var fileName = Utils(requireContext()).getFileName(fileUri)
+                            val extensionIndex = fileName.lastIndexOf(".")
+                            val fileNameWithoutExtension = fileName.substring(0, extensionIndex)
+                            val fileExtension = fileName.substring(extensionIndex)
+                            var newFileName = fileName
+                            var counter = 1
+                            while (newFilesList.any{it.name==newFileName}) {
+                                newFileName = "$fileNameWithoutExtension($counter)$fileExtension"
+                                counter++
+                            }
+                            fileName=newFileName
                             context?.let {
                                 val file = from(it, fileUri, fileName)
                                 val uploadingFile: Files = Files.newUploadingFile(
@@ -214,7 +225,18 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                         val fileUri = data.data
                         val jsonArray = JsonArray()
                         val gson = Gson()
-                        val fileName = fileUri?.let { Utils(requireContext()).getFileName(it) }
+                        val newFilesList = vultViewModel.filesList.value ?: mutableListOf()
+                        var fileName = fileUri?.let { Utils(requireContext()).getFileName(it) }
+                        val extensionIndex = fileName!!.lastIndexOf(".")
+                        val fileNameWithoutExtension = fileName.substring(0, extensionIndex)
+                        val fileExtension = fileName.substring(extensionIndex)
+                        var newFileName = fileName
+                        var counter = 1
+                        while (newFilesList.any{it.name==newFileName}) {
+                            newFileName = "$fileNameWithoutExtension($counter)$fileExtension"
+                            counter++
+                        }
+                        fileName=newFileName
                         context?.let {
                             val file = from(it, fileUri, fileName)
                             val uploadingFile: Files = Files.newUploadingFile(
@@ -468,7 +490,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         }
     }
 
-    override fun onDownloadFileClickListener(filePosition: Int) {
+    override fun onDownloadToOpenFileClickListener(filePosition: Int) {
         isRefresh(true)
         val files = vultViewModel.filesList.value!![filePosition]
         if (files.getAndroidPath() == null || files.getAndroidPath()!!.isEmpty()) {
@@ -595,9 +617,9 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             filesAdapter!!.itemCount - 1 else if (position == filesAdapter!!.getItemCount()) position =
             0
         val selected: Files = vultViewModel.filesList.value!![position]
-        if (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
+        if (selected.mimeType!=null && (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
                 .startsWith("video/") || selected.mimeType!! == "application/pdf"
-        ) viewFileAction(position, selected) else {
+                    )) viewFileAction(position, selected) else {
             if (next) previewAction(position + 1, true) else previewAction(position - 1, false)
         }
     }
@@ -685,13 +707,125 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
 
     }
 
+    override fun onDownloadFileClickListener(filePosition: Int) {
+        isRefresh(true)
+        val files = vultViewModel.filesList.value!![filePosition]
+        Log.i(
+            TAG_VULT,
+            "File download clicked: ${files.name}"
+        )
+        val downloadDirectoryPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+                files.remotePath.let {
+                    vultViewModel.downloadFileWithCallback(
+                        it,
+                        downloadDirectoryPath, object : StatusCallbackMocked {
+                            override fun commitMetaCompleted(
+                                p0: String?,
+                                p1: String?,
+                                p2: java.lang.Exception?,
+                            ) {
+                                Log.d(TAG_VULT, "commitMetaCompleted: ")
+                                Log.d(TAG_VULT, "commitMetaCompleted: p0: $p0")
+                                Log.d(TAG_VULT, "commitMetaCompleted: p1: $p1")
+                                Log.d(TAG_VULT, "commitMetaCompleted: p2: $p2")
+                            }
+
+                            override fun completed(
+                                p0: String?,
+                                p1: String?,
+                                p2: String?,
+                                p3: String?,
+                                p4: Long,
+                                p5: Long,
+                            ) {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    isRefresh(false)
+                                        val snackbar = Snackbar
+                                            .make(
+                                                binding.root,
+                                                "file downloaded",
+                                                Snackbar.LENGTH_SHORT
+                                            )
+                                        snackbar.show()
+                                }
+                            }
+
+                            override fun error(
+                                p0: String?,
+                                p1: String?,
+                                p2: Long,
+                                p3: java.lang.Exception?,
+                            ) {
+                                Log.d(TAG_VULT, "error: ")
+                                Log.d(TAG_VULT, "error: p0: $p0")
+                                Log.d(TAG_VULT, "error: p1: $p1")
+                                Log.d(TAG_VULT, "error: p2: $p2")
+                                Log.d(TAG_VULT, "error: p3: $p3")
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    isRefresh(false)
+                                    if(p3?.message?.contains("Local file already exists")==true){
+                                        val snackbar = Snackbar
+                                            .make(
+                                                binding.root,
+                                                "File already downloaded",
+                                                Snackbar.LENGTH_SHORT
+                                            )
+                                        snackbar.show()
+                                    }else{
+                                        val snackbar = Snackbar
+                                            .make(
+                                                binding.root,
+                                                "Failed to download file",
+                                                Snackbar.LENGTH_SHORT
+                                            )
+                                        snackbar.show()
+                                    }
+                                }
+                            }
+
+                            override fun inProgress(
+                                p0: String?,
+                                p1: String?,
+                                p2: Long,
+                                p3: Long,
+                                p4: ByteArray?,
+                            ) {
+                                Log.d(TAG_VULT, "inProgress: ")
+                                Log.d(TAG_VULT, "inProgress: p0: $p0")
+                                Log.d(TAG_VULT, "inProgress: p1: $p1")
+                                Log.d(TAG_VULT, "inProgress: p2: $p2")
+                                Log.d(TAG_VULT, "inProgress: p3: $p3")
+                                Log.d(TAG_VULT, "inProgress: p4: $p4")
+                            }
+
+                            override fun repairCompleted(p0: Long) {
+                                Log.d(TAG_VULT, "repairCompleted: ")
+                                Log.d(TAG_VULT, "repairCompleted: p0: $p0")
+                            }
+
+                            override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
+                                Snackbar.make(
+                                    binding.root,
+                                    "Downloading ${vultViewModel.filesList.value!![filePosition].name}",
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            }
+                        })
+                }
+            }
+            isRefresh(false)
+        }
+    }
+
     private fun viewFileAction(filePosition: Int, selectedFile: Files) {
         openFile(filePosition, selectedFile)
         if (selectedFile.getAndroidPath()?.let { File(it).exists() } == true) {
             updateFilePreview(filePosition, selectedFile)
             return
         }
-        onDownloadFileClickListener(filePosition)
+        onDownloadToOpenFileClickListener(filePosition)
     }
 
     private val statusCallbackForMultiUpload = object : StatusCallbackMocked {
