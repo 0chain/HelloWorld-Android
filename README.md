@@ -31,7 +31,7 @@ More details on params used is mentioned [here](https://github.com/0chain/gosdk/
 Both of the apps rely on the [gosdk](https://github.com/0chain/gosdk) for interacting with the
 0chain blockchain.
 
-- See [gitbook](https://docs.zus.network/guides/zus-js-sdk/sdk-reference) for extensive list of functions provided by gosdk.
+See [gitbook](https://docs.zus.network/guides/zus-js-sdk/sdk-reference) for extensive list of functions provided by gosdk.
 
 ## Setup the SDK
 
