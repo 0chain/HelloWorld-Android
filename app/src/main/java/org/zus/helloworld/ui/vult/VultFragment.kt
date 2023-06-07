@@ -512,7 +512,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 files.remotePath.let {
                     vultViewModel.downloadFileWithCallback(
                         it,
-                        files.getAndroidPath()!!, object : StatusCallbackMocked {
+                        requireContext().filesDir.absolutePath+"/", object : StatusCallbackMocked {
                             override fun commitMetaCompleted(
                                 p0: String?,
                                 p1: String?,
@@ -644,6 +644,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 val filePreview: PhotoView = previewLayout?.findViewById(R.id.filePreview)!!
                 filePreview.setImageResource(R.drawable.ic_upload_document)
             }
+            val loadingText = previewLayout?.findViewById<TextView>(R.id.loadingText)!!
+            loadingText.visibility=View.VISIBLE
             return
         }
     }
@@ -651,6 +653,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     private fun updateFilePreview(position: Int, file: Files) {
         val actualFile = File(file.getAndroidPath())
         if (currentFilePosition == position && actualFile.exists()) {
+            val loadingText = previewLayout?.findViewById<TextView>(R.id.loadingText)!!
+            loadingText.visibility=View.GONE
             val mimeType: String? = file.mimeType
             val photoPreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
             val pdfPreview: PDFView = previewLayout!!.findViewById(R.id.pdfPreview)

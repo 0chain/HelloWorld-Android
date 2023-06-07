@@ -95,4 +95,5 @@
     <string name="select_network">Select Network</string>
     <string name="_1_zcn_0_0001_usd">%1$.04f ZCN = $ %2$.04f</string>
     <string name="transaction_details">Transaction Details</string>
+    <string name="loading">Loading…</string>
 </resources>
