@@ -110,6 +110,7 @@ To create a wallet you need to call the `Zcncore.createWalletOffline()` function
   to generate a wallet for a user.
 
 ## Hackathon Discord Link
+Join our Hackathon Discord community for support and discussions:
 https://discord.gg/7JSzwpcK55
 
 ## A short video clip conveying the features of HelloWorld-Android app
