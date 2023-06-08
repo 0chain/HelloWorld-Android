@@ -89,6 +89,12 @@ fun getThumbnail(context: Context, file: File, thumbnailRoot: String, fileName: 
             BitmapFactory.decodeStream(inputStream, null, options1)
         }
         inputStream.close()
+
+        // Compress the bitmap until its size is within the desired limit (1MB)
+        val MAX_SIZE = 1024 * 1024 // 1MB
+        var quality = 90 // Initial compression quality
+        var outputStream: FileOutputStream? = null
+        var thumbnailFile: File? = null
         if (!makeDirectories(
                 context,
                 thumbnailRoot.substring(1, thumbnailRoot.length - 1)
@@ -96,14 +102,28 @@ fun getThumbnail(context: Context, file: File, thumbnailRoot: String, fileName: 
         ) {
             throw java.lang.RuntimeException("Failed to create directory")
         }
-        val thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
-        val outputStream = FileOutputStream(thumbnailFile)
-        selectedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-        if (thumbnailFile.exists()) thumbnailFile.absolutePath else ""
-    } catch (e: java.lang.Exception) {
+        while (selectedBitmap != null && getBitmapSize(selectedBitmap) > MAX_SIZE && quality > 0) {
+            outputStream?.close() // Close previous stream, if any
+            quality -= 10 // Reduce the compression quality
+            thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
+            outputStream = FileOutputStream(thumbnailFile)
+            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        }
+        outputStream?.close() // Close the stream for the final compressed bitmap
+
+        if (thumbnailFile != null && thumbnailFile.exists()) thumbnailFile.absolutePath else ""
+    } catch (e: Exception) {
         ""
     }
 }
+
+private fun getBitmapSize(bitmap: Bitmap): Int {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        return bitmap.allocationByteCount
+    }
+    return bitmap.byteCount
+}
+
 
 fun makeDirectories(context: Context, root: String): Boolean {
     if (root.isEmpty()) return true

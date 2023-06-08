@@ -67,7 +67,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 
     // Splash Screen
-    implementation 'androidx.core:core-splashscreen:1.0.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
 
     implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
 

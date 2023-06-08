@@ -595,7 +595,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         }
     }
 
-    fun previewAction(position: Int, next: Boolean) {
+    private fun previewAction(position: Int, next: Boolean) {
         var position = position
         if (position < 0) position =
             filesAdapter!!.itemCount - 1 else if (position == filesAdapter!!.getItemCount()) position =
@@ -609,9 +609,9 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         }
     }
 
-    fun showPreviewDialog(position: Int, files: Files) {
+    private fun showPreviewDialog(position: Int, files: Files) {
         val titleText = previewLayout!!.findViewById<TextView>(R.id.fileName)
-        titleText.setText(files.name)
+        titleText.text = files.name
         val btnNext = previewLayout!!.findViewById<ImageView>(R.id.btnNext)
         btnNext.setOnClickListener { previewAction(position + 1, true) }
         val btnPrevious = previewLayout!!.findViewById<ImageView>(R.id.btnPrevious)
