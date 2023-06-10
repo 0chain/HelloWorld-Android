@@ -118,10 +118,10 @@ fun getThumbnail(context: Context, file: File, thumbnailRoot: String, fileName: 
 
                 selectedBitmap.compress(compressFormat, quality, outputStream)
             }
-        }else{
+        }else if(selectedBitmap!=null){
             thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
             outputStream = FileOutputStream(thumbnailFile)
-            selectedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
             return if (thumbnailFile.exists()) thumbnailFile.absolutePath else ""
         }
         outputStream?.close() // Close the stream for the final compressed bitmap
