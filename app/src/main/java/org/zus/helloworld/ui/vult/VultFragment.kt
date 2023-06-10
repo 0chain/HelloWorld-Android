@@ -2,7 +2,10 @@ package org.zus.helloworld.ui.vult
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.*
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
@@ -73,6 +76,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     private var previewLayout: View? = null
     private var currentFilePosition = -1
     private var filesAdapter: FilesAdapter? = null
+    private var currentSnackbar: Snackbar? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -871,11 +875,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             CoroutineScope(vultViewModel.viewModelScope.coroutineContext).launch {
                 vultViewModel.listFiles("/")
             }
-            Snackbar.make(
-                binding.root,
-                "Successfully Uploaded the File.",
-                Snackbar.LENGTH_SHORT
-            ).show()
+            showSuccessSnackbar();
         }
 
         override fun error(p0: String?, p1: String?, p2: Long, p3: Exception?) {
@@ -917,11 +917,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             Log.d(TAG_VULT, "started: p2: $p2")
             Log.d(TAG_VULT, "started: p3: $p3")
             vultViewModel.modifyTotalSizeForFile(p1, p3)
-            Snackbar.make(
-                binding.root,
-                "Uploading file...",
-                Snackbar.LENGTH_SHORT
-            ).show()
+            showUploadingSnackbar();
         }
     }
 
@@ -985,5 +981,17 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             }
         }
     }
+    private fun showUploadingSnackbar() {
+        currentSnackbar?.dismiss()
+        currentSnackbar = Snackbar.make(binding.root, "Uploading file...", Snackbar.LENGTH_SHORT)
+        currentSnackbar!!.show()
+    }
 
+    // Method to show the "Successfully Uploaded the File." Snackbar
+    private fun showSuccessSnackbar() {
+        currentSnackbar?.dismiss()
+        currentSnackbar =
+            Snackbar.make(binding.root, "Successfully Uploaded the File.", Snackbar.LENGTH_SHORT)
+        currentSnackbar!!.show()
+    }
 }
