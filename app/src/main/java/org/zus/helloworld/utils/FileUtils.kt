@@ -102,12 +102,27 @@ fun getThumbnail(context: Context, file: File, thumbnailRoot: String, fileName: 
         ) {
             throw java.lang.RuntimeException("Failed to create directory")
         }
-        while (selectedBitmap != null && getBitmapSize(selectedBitmap) > MAX_SIZE && quality > 0) {
-            outputStream?.close() // Close previous stream, if any
-            quality -= 10 // Reduce the compression quality
+        if(selectedBitmap != null && getBitmapSize(selectedBitmap) > MAX_SIZE && quality > 0){
+            while (getBitmapSize(selectedBitmap) > MAX_SIZE && quality > 0) {
+                outputStream?.close() // Close previous stream, if any
+                quality -= 10 // Reduce the compression quality
+                thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
+                outputStream = FileOutputStream(thumbnailFile)
+
+                // Determine the compression format based on the mime type
+                val compressFormat = if (mimeType != null && mimeType.startsWith("image/png")) {
+                    Bitmap.CompressFormat.PNG
+                } else {
+                    Bitmap.CompressFormat.JPEG
+                }
+
+                selectedBitmap.compress(compressFormat, quality, outputStream)
+            }
+        }else{
             thumbnailFile = File(context.filesDir, thumbnailRoot.substring(1) + fileName)
             outputStream = FileOutputStream(thumbnailFile)
-            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+            selectedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+            return if (thumbnailFile.exists()) thumbnailFile.absolutePath else ""
         }
         outputStream?.close() // Close the stream for the final compressed bitmap
 

@@ -20,7 +20,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/icon_folder" />
+        app:srcCompat="@drawable/ic_upload_image" />
 
     <TextView
         android:id="@+id/tvFolderName"
