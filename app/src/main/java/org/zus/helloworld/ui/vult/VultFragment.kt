@@ -2,11 +2,9 @@ package org.zus.helloworld.ui.vult
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
-import android.graphics.Color
+import android.content.*
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -22,6 +20,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -512,7 +511,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 files.remotePath.let {
                     vultViewModel.downloadFileWithCallback(
                         it,
-                        requireContext().filesDir.absolutePath+"/", object : StatusCallbackMocked {
+                        requireContext().filesDir.absolutePath + "/",
+                        object : StatusCallbackMocked {
                             override fun commitMetaCompleted(
                                 p0: String?,
                                 p1: String?,
@@ -645,7 +645,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 filePreview.setImageResource(R.drawable.ic_upload_document)
             }
             val loadingText = previewLayout?.findViewById<TextView>(R.id.loadingText)!!
-            loadingText.visibility=View.VISIBLE
+            loadingText.visibility = View.VISIBLE
             return
         }
     }
@@ -685,8 +685,33 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 intent.flags =
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
                 intent.data = fileUri
-                val j = Intent.createChooser(intent, "Choose an application to open with:")
-                startActivity(j)
+
+                val packageManager: PackageManager = requireActivity().packageManager
+                val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+
+                if (activities.isEmpty()) {
+                    val alertDialogBuilder = AlertDialog.Builder(requireContext())
+                    alertDialogBuilder.setTitle("No Suitable App")
+                        .setMessage("There is no suitable app on your phone to open this file. You can download the file instead.")
+                        .setPositiveButton("Download File") { _, _ ->
+                            onDownloadFileClickListener(position)
+                        }
+                        .setNegativeButton("Cancel", null)
+                    alertDialogBuilder.show()
+                } else if (fileUri.toString().endsWith(".apk")) {
+                    val apkDialogBuilder = AlertDialog.Builder(requireContext())
+                    apkDialogBuilder.setTitle("APK File")
+                        .setMessage("This file is an APK file. Preview not available. You can download it instead")
+                        .setPositiveButton("Download File") { _, _ ->
+                            onDownloadFileClickListener(position)
+                        }
+                        .setNegativeButton("Cancel", null)
+                    apkDialogBuilder.show()
+                } else {
+                    val j = Intent.createChooser(intent, "Choose an application to open with:")
+                    startActivity(j)
+                }
+
             }
         }
     }

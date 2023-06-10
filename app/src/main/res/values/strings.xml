@@ -96,4 +96,5 @@
     <string name="_1_zcn_0_0001_usd">%1$.04f ZCN = $ %2$.04f</string>
     <string name="transaction_details">Transaction Details</string>
     <string name="loading">Loading…</string>
+    <string name="allocation_used_size_info">Allocation\'s used size is twice the summation of file sizes due to parity shards = 2</string>
 </resources>
