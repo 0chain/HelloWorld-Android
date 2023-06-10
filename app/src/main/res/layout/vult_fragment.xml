@@ -85,10 +85,19 @@
                     android:gravity="center_horizontal"
                     android:text="@string/storage_used"
                     android:textColor="@color/normal_text_color"
-                    android:textSize="10sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:textSize="12sp"
                     app:layout_constraintStart_toStartOf="@+id/allocation_progress_view"
                     app:layout_constraintTop_toBottomOf="@+id/allocation_progress_view" />
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/storage_used_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Allocation's used size is twice the summation of file sizes due to parity shards=2"
+                    android:textColor="@color/normal_text_color"
+                    android:textSize="10sp"
+                    app:layout_constraintStart_toStartOf="@+id/allocation_progress_view"
+                    app:layout_constraintEnd_toEndOf="@id/allocation_progress_view"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_storage_used" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline1"
