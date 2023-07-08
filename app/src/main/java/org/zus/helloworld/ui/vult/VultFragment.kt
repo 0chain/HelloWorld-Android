@@ -305,6 +305,11 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         binding.multiDownload.setOnClickListener {
             vultViewModel.onMultiSelectCheckBoxClicked()
         }
+
+        vultViewModel.isNonEmptyFilesListAvailable.observe(viewLifecycleOwner){isNonEmptyFilesListAvailable->
+            if(isNonEmptyFilesListAvailable)binding.multiDownload.visibility = View.VISIBLE
+            else binding.multiDownload.visibility = View.GONE
+        }
         vultViewModel.isMultiSelectEnabled().observe(viewLifecycleOwner) { isEnabled ->
             filesAdapter!!.setMultiSelect(isEnabled)
             filesAdapter!!.notifyDataSetChanged()
@@ -326,18 +331,22 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 }
                 filesAdapter!!.setSelectedFiles(fileNames)
             }
+            if(selectedFiles.isEmpty()){
+                binding.confirmMultiDownload.visibility = View.GONE
+            }else{
+                binding.confirmMultiDownload.visibility = View.VISIBLE
+            }
             filesAdapter!!.notifyDataSetChanged()
         }
 
         vultViewModel.isMultiSelectEnabled().observe(viewLifecycleOwner) { isEnabled ->
             if (isEnabled) {
                 binding.cancelMultiDownload.visibility = View.VISIBLE
-                binding.confirmMultiDownload.visibility = View.VISIBLE
-                binding.multiDownload.visibility = View.GONE
+                binding.multiDownload.alpha = 0F
             } else {
                 binding.cancelMultiDownload.visibility = View.GONE
                 binding.confirmMultiDownload.visibility = View.GONE
-                binding.multiDownload.visibility = View.VISIBLE
+                binding.multiDownload.alpha = 1F
             }
         }
         vultViewModel.notifyDataSetChanged.observe(viewLifecycleOwner) { dataChanged ->
@@ -348,7 +357,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
 
         }
 
-        vultViewModel.filesList.observe(viewLifecycleOwner) { files ->
+        vultViewModel.getFilesList().observe(viewLifecycleOwner) { files ->
             if (files != null)
                 filesAdapter!!.files = files
             else

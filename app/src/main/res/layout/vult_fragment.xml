@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
-    <data>
-        <variable
-            name="vultViewModel"
-            type="org.zus.helloworld.ui.vult.VultViewModel" />
-    </data>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -216,8 +210,7 @@
             app:layout_constraintTop_toTopOf="@id/tv_all_files"
             app:layout_constraintBottom_toBottomOf="@id/tv_all_files"
             app:layout_constraintEnd_toEndOf="parent"
-            android:padding="4dp"
-            >
+            android:padding="4dp">
             <TextView
                 android:id="@+id/tv_multi_download"
                 android:layout_width="wrap_content"
@@ -244,12 +237,11 @@
     android:layout_height="wrap_content"
     app:layout_constraintTop_toTopOf="@id/tv_all_files"
     app:layout_constraintBottom_toBottomOf="@id/tv_all_files"
-    app:layout_constraintEnd_toEndOf="parent"
-    android:text="Confirm"
+    app:layout_constraintEnd_toEndOf="@id/cancel_multi_download"
+    android:text="Confirm Download"
     android:padding="4dp"
-    android:visibility="gone"
     android:textColor="@color/vult_blue"
-    android:layout_marginEnd="12dp"
+    android:layout_marginEnd="80dp"
     />
         <TextView
             android:id="@+id/cancel_multi_download"
@@ -257,12 +249,11 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="@id/tv_all_files"
             app:layout_constraintBottom_toBottomOf="@id/tv_all_files"
-            app:layout_constraintEnd_toStartOf="@id/confirm_multi_download"
             android:text="Cancel"
             android:textColor="@color/vult_blue"
-            android:layout_marginEnd="56dp"
+            app:layout_constraintStart_toStartOf="@id/multi_download"
+            app:layout_constraintEnd_toEndOf="@id/multi_download"
             android:padding="4dp"
-            android:visibility="gone"
             />
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_all_files"
@@ -279,4 +270,3 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-</layout>

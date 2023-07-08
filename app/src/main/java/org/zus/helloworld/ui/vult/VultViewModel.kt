@@ -24,6 +24,9 @@ class VultViewModel : ViewModel() {
     lateinit var allocationId: String
     lateinit var allocation: AllocationModel
     var filesList: MutableLiveData<MutableList<Files>?> = MutableLiveData()
+    fun getFilesList(): LiveData<MutableList<Files>?> {
+        return filesList
+    }
     var totalStorageUsed = MutableLiveData<Long>()
     var notifyDataSetChanged = MutableLiveData<Boolean>()
     private val multiSelectEnabled = MutableLiveData<Boolean>()
@@ -34,9 +37,13 @@ class VultViewModel : ViewModel() {
     fun getSelectedFiles(): LiveData<List<Files>> {
         return selectedFiles
     }
+    private val nonEmptyFilesListAvailable = MutableLiveData<Boolean>()
+    val isNonEmptyFilesListAvailable: LiveData<Boolean>
+        get() = nonEmptyFilesListAvailable
     init {
         filesList.value = mutableListOf()
         multiSelectEnabled.value = false
+        nonEmptyFilesListAvailable.value = false
     }
 
     companion object {
@@ -340,6 +347,7 @@ class VultViewModel : ViewModel() {
                         }
                     }
                     this@VultViewModel.totalStorageUsed.postValue(totalStorage)
+                    if(filesList.value!!.isNotEmpty())nonEmptyFilesListAvailable.postValue(true)
                     notifyDataSetChanged.postValue(true)
                 } catch (e: Exception) {
                     Log.e(TAG_VULT, "listFiles Exception: ", e)
