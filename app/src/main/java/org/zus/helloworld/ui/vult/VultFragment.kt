@@ -385,7 +385,28 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             }
         }
 
-
+        binding.confirmMultiDownload.setOnClickListener {
+            Log.i(
+                TAG_VULT,
+                "File(s) multi-download clicked"
+            )
+            val downloadDirectoryPath =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+            CoroutineScope(Dispatchers.Main).launch {
+                val snackbar = Snackbar
+                    .make(
+                        binding.root,
+                        "Downloading selected file(s)",
+                        Snackbar.LENGTH_SHORT
+                    )
+                snackbar.show()
+                withContext(Dispatchers.IO) {
+                    vultViewModel.multiDownloadFilesWithCallback(
+                        downloadDirectoryPath, MultiDownloadCallBack (vultViewModel.getSelectedFiles().value!!, binding.root)
+                    )
+                }
+            }
+        }
 
         return binding.root
     }
@@ -790,7 +811,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                     val snackbar = Snackbar
                                         .make(
                                             binding.root,
-                                            "file downloaded",
+                                            "${files.name} downloaded",
                                             Snackbar.LENGTH_SHORT
                                         )
                                     snackbar.show()
