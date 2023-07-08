@@ -1,6 +1,7 @@
 package org.zus.helloworld.ui.vult
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
@@ -16,6 +17,7 @@ import sdk.Sdk
 import sdk.StorageSDK
 import zbox.Allocation
 import zbox.StatusCallbackMocked
+import java.util.*
 
 class VultViewModel : ViewModel() {
     lateinit var storageSDK: StorageSDK
@@ -24,9 +26,17 @@ class VultViewModel : ViewModel() {
     var filesList: MutableLiveData<MutableList<Files>?> = MutableLiveData()
     var totalStorageUsed = MutableLiveData<Long>()
     var notifyDataSetChanged = MutableLiveData<Boolean>()
-
+    private val multiSelectEnabled = MutableLiveData<Boolean>()
+    fun isMultiSelectEnabled(): LiveData<Boolean> {
+        return multiSelectEnabled
+    }
+    private val selectedFiles = MutableLiveData<List<Files>>()
+    fun getSelectedFiles(): LiveData<List<Files>> {
+        return selectedFiles
+    }
     init {
         filesList.value = mutableListOf()
+        multiSelectEnabled.value = false
     }
 
     companion object {
@@ -249,7 +259,8 @@ class VultViewModel : ViewModel() {
                     remotePath,
                     /* file local download path =*/
                     downloadPath,
-                    callback
+                    callback,
+                    true
                 )
             } catch (e: Exception) {
                 Log.e(TAG_VULT, "downloadFile Exception: ", e)
@@ -438,7 +449,8 @@ class VultViewModel : ViewModel() {
                         allocation.id,
                         file.remotePath,
                         file.thumbnailPath,
-                        callback
+                        callback,
+                        true
                     )
                 }
             } catch (e: Exception) {
@@ -469,5 +481,26 @@ class VultViewModel : ViewModel() {
                 notifyDataSetChanged.postValue(true)
             }
         }
+    }
+
+    fun onMultiSelectCheckBoxClicked() {
+        multiSelectEnabled.value = java.lang.Boolean.TRUE != multiSelectEnabled.value
+    }
+
+    fun disableMultiSelect() {
+        multiSelectEnabled.value = false
+    }
+    fun disSelectAllFiles() {
+        selectedFiles.value = emptyList()
+    }
+    fun removeFileFromSelectedList(selectedFile: Files) {
+        val updatedList = selectedFiles.value?.toMutableList()
+        updatedList?.remove(selectedFile)
+        selectedFiles.postValue(updatedList!!)
+    }
+    fun addFileToSelectedList(selectedFile: Files?) {
+        val updatedList = selectedFiles.value?.toMutableList()
+        updatedList?.add(selectedFile!!)
+        selectedFiles.postValue(updatedList!!)
     }
 }
