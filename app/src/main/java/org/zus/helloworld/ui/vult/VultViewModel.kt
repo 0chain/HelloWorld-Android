@@ -1,9 +1,12 @@
 package org.zus.helloworld.ui.vult
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -16,17 +19,33 @@ import sdk.Sdk
 import sdk.StorageSDK
 import zbox.Allocation
 import zbox.StatusCallbackMocked
+import java.util.*
 
 class VultViewModel : ViewModel() {
     lateinit var storageSDK: StorageSDK
     lateinit var allocationId: String
     lateinit var allocation: AllocationModel
     var filesList: MutableLiveData<MutableList<Files>?> = MutableLiveData()
+    fun getFilesList(): LiveData<MutableList<Files>?> {
+        return filesList
+    }
     var totalStorageUsed = MutableLiveData<Long>()
     var notifyDataSetChanged = MutableLiveData<Boolean>()
-
+    private val multiSelectEnabled = MutableLiveData<Boolean>()
+    fun isMultiSelectEnabled(): LiveData<Boolean> {
+        return multiSelectEnabled
+    }
+    private val selectedFiles = MutableLiveData<List<Files>>()
+    fun getSelectedFiles(): LiveData<List<Files>> {
+        return selectedFiles
+    }
+    private val nonEmptyFilesListAvailable = MutableLiveData<Boolean>()
+    val isNonEmptyFilesListAvailable: LiveData<Boolean>
+        get() = nonEmptyFilesListAvailable
     init {
         filesList.value = mutableListOf()
+        multiSelectEnabled.value = false
+        nonEmptyFilesListAvailable.value = false
     }
 
     companion object {
@@ -239,16 +258,21 @@ class VultViewModel : ViewModel() {
         downloadPath: String,
         callback: StatusCallbackMocked,
     ) {
-        withContext(Dispatchers.IO) {
+        val jsonArray = JsonArray()
+        val gson = Gson()
+            val jsonObject = JsonObject()
+            jsonObject.addProperty("remotePath", remotePath)
+            jsonObject.addProperty("localPath", downloadPath)
+            jsonObject.addProperty("downloadOp", 1)
+            jsonArray.add(jsonObject)
             Log.i(TAG_VULT, "downloadFile: ")
             Log.i(TAG_VULT, "downloadFile: fileName: $remotePath")
             Log.i(TAG_VULT, "downloadFile: downloadPath: $downloadPath")
+        val multiDownloadOption = gson.toJson(jsonArray)
+        withContext(Dispatchers.IO) {
             try {
-                zbox.Zbox.downloadFile(allocationId,
-                    /* remote path =*/
-                    remotePath,
-                    /* file local download path =*/
-                    downloadPath,
+                zbox.Zbox.multiDownload(allocationId,
+                    multiDownloadOption,
                     callback
                 )
             } catch (e: Exception) {
@@ -329,6 +353,7 @@ class VultViewModel : ViewModel() {
                         }
                     }
                     this@VultViewModel.totalStorageUsed.postValue(totalStorage)
+                    if(filesList.value!!.isNotEmpty())nonEmptyFilesListAvailable.postValue(true)
                     notifyDataSetChanged.postValue(true)
                 } catch (e: Exception) {
                     Log.e(TAG_VULT, "listFiles Exception: ", e)
@@ -438,7 +463,8 @@ class VultViewModel : ViewModel() {
                         allocation.id,
                         file.remotePath,
                         file.thumbnailPath,
-                        callback
+                        callback,
+                        true
                     )
                 }
             } catch (e: Exception) {
@@ -467,6 +493,61 @@ class VultViewModel : ViewModel() {
             index?.let {
                 filesList.value?.set(it, modifiedFile)
                 notifyDataSetChanged.postValue(true)
+            }
+        }
+    }
+
+    fun onMultiSelectCheckBoxClicked() {
+        multiSelectEnabled.value = java.lang.Boolean.TRUE != multiSelectEnabled.value
+    }
+
+    private fun disableMultiSelect() {
+        multiSelectEnabled.postValue(false)
+    }
+    fun disSelectAllFiles() {
+        selectedFiles.value = emptyList()
+    }
+    fun removeFileFromSelectedList(selectedFile: Files) {
+        val updatedList = selectedFiles.value?.toMutableList()
+        updatedList?.remove(selectedFile)
+        selectedFiles.postValue(updatedList!!)
+    }
+    fun addFileToSelectedList(selectedFile: Files?) {
+        val updatedList = selectedFiles.value?.toMutableList()
+        updatedList?.add(selectedFile!!)
+        selectedFiles.postValue(updatedList!!)
+    }
+
+    suspend fun multiDownloadFilesWithCallback(
+        downloadDirectoryPath: String,
+        multiDownloadCallback: StatusCallbackMocked
+    ) {
+        val selectedFilesList = selectedFiles.value!!
+        disableMultiSelect()
+        val jsonArray = JsonArray()
+        val gson = Gson()
+        for (file in selectedFilesList) {
+            val jsonObject = JsonObject()
+            jsonObject.addProperty("remotePath", file.remotePath)
+            jsonObject.addProperty("localPath", downloadDirectoryPath)
+            jsonObject.addProperty("downloadOp", 1)
+            jsonArray.add(jsonObject)
+            Log.i(TAG_VULT, "downloadFile: ")
+            Log.i(TAG_VULT, "downloadFile: fileName: ${file.remotePath}")
+            Log.i(TAG_VULT, "downloadFile: downloadPath: $downloadDirectoryPath")
+        }
+        val multiDownloadOption = gson.toJson(jsonArray)
+        withContext(Dispatchers.IO) {
+            try {
+                zbox.Zbox.multiDownload(allocationId,
+                    multiDownloadOption,
+                    multiDownloadCallback
+                )
+            } catch (e: Exception) {
+                Log.e(TAG_VULT, "downloadFile Exception: ", e)
+                for(file in selectedFilesList){
+                    multiDownloadCallback.error(allocationId, file.remotePath,0, e)
+                }
             }
         }
     }

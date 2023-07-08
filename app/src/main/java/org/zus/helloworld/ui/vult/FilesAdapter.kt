@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -21,7 +22,10 @@ class FilesAdapter(
     var files: MutableList<Files>,
     private val onFileClickListener: FileClickListener,
     private val context: Context?,
-    private var thumbnailDownloadCallback: ThumbnailDownloadCallback? = null
+    private var thumbnailDownloadCallback: ThumbnailDownloadCallback? = null,
+    private var selectedFiles: Set<String> = HashSet(),
+    private var isMultiSelectEnabled: Boolean = false
+
 
 ) : RecyclerView.Adapter<FilesAdapter.ViewHolder>() {
     fun setThumbnailDownloadCallback(thumbnailDownloadCallback: ThumbnailDownloadCallback?) {
@@ -35,6 +39,7 @@ class FilesAdapter(
         val downloadProgress: ProgressBar = view.findViewById(R.id.uploadsProgressBar)
         val fileSize: TextView = view.findViewById(R.id.textSize)
         val downloadButton: ImageView = view.findViewById(R.id.ivDownloadFile)
+        val checkBox: AppCompatImageButton = view.findViewById(R.id.check_box)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -88,15 +93,30 @@ class FilesAdapter(
         holder.itemView.setOnClickListener {
             onFileClickListener.onFileClick(position)
         }
-
-        /*holder.itemView.setOnLongClickListener {
-            onFileClickListener.onShareLongPressFileClickListener(position)
-            true
-        }*/
+        holder.checkBox.setOnClickListener {
+            onFileClickListener.onFileMultiSelectClick(position)
+        }
+        if(isMultiSelectEnabled){
+            if (selectedFiles.contains(currentFile.name)) {
+                holder.checkBox.setImageResource(R.drawable.check_box_selected)
+            } else {
+                holder.checkBox.setImageResource(R.drawable.check_box_unselected)
+            }
+            holder.checkBox.visibility = View.VISIBLE
+        } else{
+            holder.checkBox.visibility = View.GONE
+        }
     }
 
     override fun getItemCount(): Int {
         return files.size
+    }
+    fun setMultiSelect(isMultiSelectEnabled: Boolean) {
+        this.isMultiSelectEnabled = isMultiSelectEnabled
+    }
+
+    fun setSelectedFiles(files: Set<String>) {
+        this.selectedFiles = files
     }
 }
 
@@ -109,4 +129,5 @@ interface FileClickListener {
     fun onDownloadToOpenFileClickListener(filePosition: Int)
     fun onFileClick(filePosition: Int)
     fun onDownloadFileClickListener(position: Int)
+    fun onFileMultiSelectClick(position: Int)
 }

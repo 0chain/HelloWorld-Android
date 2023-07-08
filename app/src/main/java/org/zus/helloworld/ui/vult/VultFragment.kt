@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -293,42 +294,61 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                 }
             }
 
-        /*val photoPicker =
-            registerForActivityResult(PickVisualMedia()) { uri ->
-                if (uri != null) {
-                    *//* Uploading files. *//*
-                    val fileName = Utils(requireContext()).getFileName(uri)
-                    val filePath = makeFileCopyInCacheDir(uri)
-
-                    Log.i(TAG_VULT, "Uri: $uri")
-                    Log.i(TAG_VULT, "Uri path: ${uri.path}")
-                    Log.i(TAG_VULT, "File name: $fileName")
-                    Log.i(TAG_VULT, "File path: $filePath")
-
-                    CoroutineScope(Dispatchers.Main).launch {
-                        isRefresh(true)
-                        vultViewModel.uploadFileWithCallback(
-                            workDir = requireContext().filesDir.absolutePath,
-                            fileName = fileName,
-                            filePathURI = filePath,
-                            fileThumbnailPath = "",
-                            encryptFile = false,
-                            webStreaming = false,
-                            callback = uploadStatusCallback
-                        )
-                        isRefresh(false)
-                    }
-                }
-            }*/
-
         binding.tvStorageUsed.text =
             getString(R.string.storage_used, 0.getConvertedSize(), 0.getConvertedSize())
 
         filesAdapter = FilesAdapter(mutableListOf(), this, context)
         filesAdapter!!.setThumbnailDownloadCallback(this)
+        filesAdapter!!.setMultiSelect(vultViewModel.isMultiSelectEnabled().value==true)
         binding.rvAllFiles.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAllFiles.adapter = filesAdapter
+        binding.multiDownload.setOnClickListener {
+            vultViewModel.onMultiSelectCheckBoxClicked()
+        }
 
+        vultViewModel.isNonEmptyFilesListAvailable.observe(viewLifecycleOwner){isNonEmptyFilesListAvailable->
+            if(isNonEmptyFilesListAvailable)binding.multiDownload.visibility = View.VISIBLE
+            else binding.multiDownload.visibility = View.GONE
+        }
+        vultViewModel.isMultiSelectEnabled().observe(viewLifecycleOwner) { isEnabled ->
+            filesAdapter!!.setMultiSelect(isEnabled)
+            filesAdapter!!.notifyDataSetChanged()
+            if (!isEnabled) {
+                vultViewModel.disSelectAllFiles()
+            }
+        }
+
+        vultViewModel.getSelectedFiles().observe(viewLifecycleOwner) { selectedFiles ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                filesAdapter!!.setSelectedFiles(
+                    selectedFiles.map { it.name!! }.toSet()
+                )
+            } else {
+                val fileNames: MutableSet<String> =
+                    HashSet()
+                for (file in selectedFiles) {
+                    fileNames.add(file.name!!)
+                }
+                filesAdapter!!.setSelectedFiles(fileNames)
+            }
+            if(selectedFiles.isEmpty()){
+                binding.confirmMultiDownload.visibility = View.GONE
+            }else{
+                binding.confirmMultiDownload.visibility = View.VISIBLE
+            }
+            filesAdapter!!.notifyDataSetChanged()
+        }
+
+        vultViewModel.isMultiSelectEnabled().observe(viewLifecycleOwner) { isEnabled ->
+            if (isEnabled) {
+                binding.cancelMultiDownload.visibility = View.VISIBLE
+                binding.multiDownload.alpha = 0F
+            } else {
+                binding.cancelMultiDownload.visibility = View.GONE
+                binding.confirmMultiDownload.visibility = View.GONE
+                binding.multiDownload.alpha = 1F
+            }
+        }
         vultViewModel.notifyDataSetChanged.observe(viewLifecycleOwner) { dataChanged ->
             if (dataChanged) {
                 filesAdapter!!.notifyDataSetChanged()
@@ -337,7 +357,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
 
         }
 
-        vultViewModel.filesList.observe(viewLifecycleOwner) { files ->
+        vultViewModel.getFilesList().observe(viewLifecycleOwner) { files ->
             if (files != null)
                 filesAdapter!!.files = files
             else
@@ -365,7 +385,28 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             }
         }
 
-
+        binding.confirmMultiDownload.setOnClickListener {
+            Log.i(
+                TAG_VULT,
+                "File(s) multi-download clicked"
+            )
+            val downloadDirectoryPath =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+            CoroutineScope(Dispatchers.Main).launch {
+                val snackbar = Snackbar
+                    .make(
+                        binding.root,
+                        "Downloading selected file(s)",
+                        Snackbar.LENGTH_SHORT
+                    )
+                snackbar.show()
+                withContext(Dispatchers.IO) {
+                    vultViewModel.multiDownloadFilesWithCallback(
+                        downloadDirectoryPath, MultiDownloadCallBack (vultViewModel.getSelectedFiles().value!!, binding.root)
+                    )
+                }
+            }
+        }
 
         return binding.root
     }
@@ -607,7 +648,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     private fun previewAction(position: Int, next: Boolean) {
         var position = position
         if (position < 0) position =
-            filesAdapter!!.itemCount - 1 else if (position == filesAdapter!!.getItemCount()) position =
+            filesAdapter!!.itemCount - 1 else if (position == filesAdapter!!.itemCount) position =
             0
         val selected: Files = vultViewModel.filesList.value!![position]
         if (selected.mimeType != null && (selected.mimeType!!.startsWith("image/") || selected.mimeType!!
@@ -770,7 +811,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                                     val snackbar = Snackbar
                                         .make(
                                             binding.root,
-                                            "file downloaded",
+                                            "${files.name} downloaded",
                                             Snackbar.LENGTH_SHORT
                                         )
                                     snackbar.show()
@@ -844,6 +885,16 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         }
     }
 
+    override fun onFileMultiSelectClick(position: Int) {
+        val selected: Files = filesAdapter!!.files[position]
+        val fileNames: MutableList<String> = ArrayList()
+        val filesList: List<Files> = vultViewModel.getSelectedFiles().value!!
+        for (file in filesList) fileNames.add(file.name!!)
+        if (fileNames.contains(selected.name)) vultViewModel.removeFileFromSelectedList(
+            selected
+        ) else vultViewModel.addFileToSelectedList(selected)
+    }
+
     private fun viewFileAction(filePosition: Int, selectedFile: Files) {
         openFile(filePosition, selectedFile)
         if (selectedFile.getAndroidPath()?.let { File(it).exists() } == true) {
@@ -880,7 +931,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             CoroutineScope(vultViewModel.viewModelScope.coroutineContext).launch {
                 vultViewModel.listFiles("/")
             }
-            showSuccessSnackbar();
+            showSuccessSnackbar()
         }
 
         override fun error(p0: String?, p1: String?, p2: Long, p3: Exception?) {
@@ -922,7 +973,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
             Log.d(TAG_VULT, "started: p2: $p2")
             Log.d(TAG_VULT, "started: p3: $p3")
             vultViewModel.modifyTotalSizeForFile(p1, p3)
-            showUploadingSnackbar();
+            showUploadingSnackbar()
         }
     }
 
@@ -982,7 +1033,7 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                     override fun started(p0: String?, p1: String?, p2: Long, p3: Long) {
                     }
 
-                });
+                })
             }
         }
     }
