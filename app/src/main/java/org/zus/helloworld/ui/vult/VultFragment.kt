@@ -2,10 +2,7 @@ package org.zus.helloworld.ui.vult
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
@@ -33,6 +30,19 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.barteksc.pdfviewer.PDFView
 import com.github.chrisbanes.photoview.PhotoView
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.ui.TimeBar
+import com.google.android.exoplayer2.ui.TimeBar.OnScrubListener
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DataSpec
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.JsonArray
@@ -47,6 +57,9 @@ import org.zus.helloworld.utils.Utils.Companion.getConvertedDateTime
 import org.zus.helloworld.utils.Utils.Companion.getConvertedSize
 import org.zus.helloworld.utils.Utils.Companion.getSizeInB
 import org.zus.helloworld.utils.Utils.Companion.getTimeInNanoSeconds
+import org.zus.helloworld.utils.streaming.ZChainDataSource
+import org.zus.helloworld.utils.streaming.ZChainLocalFile
+import org.zus.helloworld.utils.streaming.ZChainMediaSourceFactory
 import zbox.StatusCallbackMocked
 import zcncore.Zcncore
 import java.io.File
@@ -66,7 +79,8 @@ val LOCK_TOKENS: String = Zcncore.convertToValue(1.0)
 private const val REQUEST_FILES = 1
 private const val RESULT_ERROR = 64
 
-class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
+class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback,
+    DialogInterface.OnDismissListener {
     private lateinit var binding: VultFragmentBinding
     private lateinit var vultViewModel: VultViewModel
     private lateinit var mainViewModel: MainViewModel
@@ -78,6 +92,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     private var currentFilePosition = -1
     private var filesAdapter: FilesAdapter? = null
     private var currentSnackbar: Snackbar? = null
+    var progressLayout: View? = null
+    var exoPlayer: ExoPlayer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -164,6 +180,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         previewLayout = layoutInflater.inflate(R.layout.dialog_file_preview, null)
         previewDialog!!.setContentView(previewLayout!!)
         previewDialog!!.setCancelable(true)
+        previewDialog!!.setOnDismissListener(this)
+        progressLayout = previewLayout!!.findViewById(R.id.progressLayout)
 
         val documentPicker =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -584,7 +602,8 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
                             ) {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     isRefresh(false)
-                                    updateFilePreview(filePosition, files)
+                                    if(!files.mimeType!!.startsWith("video/"))
+                                        updateFilePreview(filePosition, files)
                                 }
                             }
 
@@ -663,9 +682,13 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         val titleText = previewLayout!!.findViewById<TextView>(R.id.fileName)
         titleText.text = files.name
         val btnNext = previewLayout!!.findViewById<ImageView>(R.id.btnNext)
-        btnNext.setOnClickListener { previewAction(position + 1, true) }
+        btnNext.setOnClickListener {
+            releasePlayer()
+            previewAction(position + 1, true) }
         val btnPrevious = previewLayout!!.findViewById<ImageView>(R.id.btnPrevious)
-        btnPrevious.setOnClickListener { previewAction(position - 1, false) }
+        btnPrevious.setOnClickListener {
+            releasePlayer()
+            previewAction(position - 1, false) }
         // Dismiss the dialog when the back button is clicked
         val backButton = previewLayout!!.findViewById<ImageView>(R.id.headerBack)
         backButton.setOnClickListener { previewDialog!!.dismiss() }
@@ -675,54 +698,61 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
     private fun openFile(position: Int, files: Files) {
         currentFilePosition = position
         var file: File? = null
-        if (files.getAndroidPath() != null) file = File(files.getAndroidPath())
+        file = files.getAndroidPath()?.let { File(it) }
         val mimeType: String? = files.mimeType
         showPreviewDialog(position, files)
         if (file == null || !file.exists()) {
+            val photoPreview = previewLayout!!.findViewById<PhotoView>(R.id.filePreview)
+            photoPreview.visibility = View.VISIBLE
+            val videoPlayerView: StyledPlayerView =
+                previewLayout!!.findViewById(R.id.videoPlayerView)
+            videoPlayerView.visibility = View.INVISIBLE
             if (mimeType?.startsWith("image/") == true || mimeType?.startsWith("video/") == true) {
                 val thumbnailPath: String? = files.thumbnailPath
                 if (thumbnailPath != null) {
                     val thumbnailFile: File? = files.thumbnailPath?.let { File(it) }
-                    val filePreview: PhotoView = previewLayout?.findViewById(R.id.filePreview)!!
-                    if (thumbnailFile?.exists() == true) filePreview.setImageURI(
+                    if (thumbnailFile?.exists() == true) photoPreview.setImageURI(
                         Uri.fromFile(
                             thumbnailFile
                         )
                     )
                 }
             } else if (mimeType.equals("application/pdf")) {
-                val filePreview: PhotoView = previewLayout?.findViewById(R.id.filePreview)!!
-                filePreview.setImageResource(R.drawable.ic_upload_document)
+                photoPreview.setImageResource(R.drawable.ic_upload_document)
             }
-            val loadingText = previewLayout?.findViewById<TextView>(R.id.loadingText)!!
-            loadingText.visibility = View.VISIBLE
-            return
         }
     }
 
     private fun updateFilePreview(position: Int, file: Files) {
-        val actualFile = File(file.getAndroidPath())
-        if (currentFilePosition == position && actualFile.exists()) {
-            val loadingText = previewLayout?.findViewById<TextView>(R.id.loadingText)!!
-            loadingText.visibility = View.GONE
-            val mimeType: String? = file.mimeType
-            val photoPreview: PhotoView = previewLayout!!.findViewById(R.id.filePreview)
-            val pdfPreview: PDFView = previewLayout!!.findViewById(R.id.pdfPreview)
-            if (mimeType != null && mimeType.startsWith("image/")) {
-                photoPreview.visibility = View.VISIBLE
+        val mimeType: String = file.mimeType!!
+        if (currentFilePosition == position) {
+            val photoPreview = previewLayout!!.findViewById<PhotoView>(R.id.filePreview)
+            val pdfPreview = previewLayout!!.findViewById<PDFView>(R.id.pdfPreview)
+            val videoPlayerView =
+                previewLayout!!.findViewById<StyledPlayerView>(R.id.videoPlayerView)
+            if (mimeType.startsWith("image/")) {
                 pdfPreview.visibility = View.INVISIBLE
+                photoPreview.visibility = View.VISIBLE
+                videoPlayerView.visibility = View.INVISIBLE
+                progressLayout!!.visibility = View.INVISIBLE
+                val actualFile = file.getAndroidPath()?.let { File(it) }
                 photoPreview.setImageURI(Uri.fromFile(actualFile))
-            } else if (mimeType.equals("application/pdf")) {
+            } else if (mimeType.startsWith("video/")) {
+                pdfPreview.visibility = View.INVISIBLE
+                showVideoPreview(position, file)
+            }else if (mimeType == "application/pdf") {
                 pdfPreview.visibility = View.VISIBLE
                 photoPreview.visibility = View.INVISIBLE
+                videoPlayerView.visibility = View.INVISIBLE
+                progressLayout!!.visibility = View.INVISIBLE
                 try {
+                    val actualFile = file.getAndroidPath()?.let { File(it) }
                     pdfPreview.fromFile(actualFile).load()
                 } catch (e: Exception) {
                     e.message?.let { Log.e(TAG_VULT, it) }
                 }
             } else {
-                var f: File? = null
-                if (file.getAndroidPath() != null) f = actualFile
+                val f = file.getAndroidPath()?.let { File(it) }
                 val fileUri = f?.let {
                     FileProvider.getUriForFile(
                         requireActivity(),
@@ -766,10 +796,105 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         }
     }
 
+    private fun showVideoPreview(position: Int, file: Files) {
+        val localFile = file.getAndroidPath()?.let { File(it) }
+        var mediaSource: MediaSource
+        val item: MediaItem
+        var zChainMediaSourceFactory: ZChainMediaSourceFactory? = null
+        var tmpFile: File? = null
+        if (localFile?.exists() == true) {
+            item = MediaItem.fromUri(Uri.fromFile(localFile))
+            val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
+                requireActivity(), "user-agent"
+            )
+            mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(item)
+            play(mediaSource, file, null, null)
+        } else {
+            val zChainLocalFile = ZChainLocalFile(file.remotePath)
+            zChainLocalFile.tempPath= requireActivity().cacheDir.path
+            zChainLocalFile.fileTotalBytes = file.actualFileSize
+            zChainLocalFile.numBlocks = file.numBlocks.toLong()
+            zChainLocalFile.lookupHash = file.getLookupHash()
+            zChainLocalFile.chunkSize = 65536L
+            tmpFile = File(requireActivity().cacheDir, "media.mp4")
+            if (tmpFile.exists()) {
+                tmpFile.delete()
+            }
+            item = MediaItem.Builder()
+                .setUri(Uri.parse(tmpFile.absolutePath))
+                .build()
+            CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.Main){
+                    zChainMediaSourceFactory = ZChainMediaSourceFactory(
+                        ZChainDataSource.Factory(
+                            vultViewModel.getAllocation()!!,
+                            zChainLocalFile
+                        )
+                    )
+                    mediaSource = zChainMediaSourceFactory!!.createMediaSource(item)
+                    play(mediaSource, file, zChainMediaSourceFactory, tmpFile)
+                }
+            }
+        }
+    }
+    private fun play(
+        mediaSource: MediaSource,
+        file: Files,
+        zChainMediaSourceFactory: ZChainMediaSourceFactory?,
+        tmpFile: File?
+    ) {
+        val dataShards: Int = 2
+        exoPlayer = ExoPlayer.Builder(requireActivity()).build()
+        val videoPlayerView = previewLayout!!.findViewById<StyledPlayerView>(R.id.videoPlayerView)
+        videoPlayerView.player = exoPlayer
+        exoPlayer!!.setMediaSource(mediaSource, true)
+        exoPlayer!!.prepare()
+        exoPlayer!!.playWhenReady = true
+        videoPlayerView.visibility = View.VISIBLE
+        exoPlayer!!.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                previewLayout!!.findViewById<View>(R.id.filePreview).visibility = View.INVISIBLE
+                if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
+                    progressLayout!!.visibility = View.INVISIBLE
+                } else {
+                    previewLayout!!.visibility = View.VISIBLE
+                }
+            }
+        })
+        val scrubListener: OnScrubListener = object : OnScrubListener {
+            override fun onScrubStart(timeBar: TimeBar, position: Long) {
+                // Called when user starts interacting with the seek bar
+            }
+
+            override fun onScrubMove(timeBar: TimeBar, position: Long) {}
+            override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
+                if (zChainMediaSourceFactory != null) {
+                    val effectivePerShardSize: Long =
+                        (file.actualFileSize + dataShards - 1) / dataShards
+                    val effectiveBlockSize = 65536L
+                    val totalFileBlocks =
+                        (effectivePerShardSize + effectiveBlockSize - 1) / effectiveBlockSize
+                    val currentBlock = position * totalFileBlocks / exoPlayer!!.duration
+                    val dataSpec = DataSpec.Builder()
+                        .setUri(Uri.parse(tmpFile!!.absolutePath))
+                        .setPosition(currentBlock)
+                        .setLength(C.LENGTH_UNSET.toLong())
+                        .build()
+                    try {
+                        zChainMediaSourceFactory.setDataSpec(dataSpec)
+                    } catch (e: HttpDataSourceException) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+        val timeBar: TimeBar = videoPlayerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_progress)
+        timeBar.addListener(scrubListener)
+    }
     override fun onFileClick(filePosition: Int) {
         val selectedFile = vultViewModel.filesList.value!![filePosition]
         viewFileAction(filePosition, selectedFile)
-
     }
 
     override fun onDownloadFileClickListener(filePosition: Int) {
@@ -900,6 +1025,9 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         if (selectedFile.getAndroidPath()?.let { File(it).exists() } == true) {
             updateFilePreview(filePosition, selectedFile)
             return
+        }
+        if (selectedFile.mimeType!!.startsWith("video/")) {
+            updateFilePreview(filePosition, selectedFile)
         }
         onDownloadToOpenFileClickListener(filePosition)
     }
@@ -1050,5 +1178,13 @@ class VultFragment : Fragment(), FileClickListener, ThumbnailDownloadCallback {
         currentSnackbar =
             Snackbar.make(binding.root, "Successfully Uploaded the File.", Snackbar.LENGTH_SHORT)
         currentSnackbar!!.show()
+    }
+
+    override fun onDismiss(p0: DialogInterface?) {
+        releasePlayer()
+    }
+
+    private fun releasePlayer() {
+        exoPlayer?.release()
     }
 }
